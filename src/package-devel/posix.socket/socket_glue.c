@@ -25,9 +25,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include <netdb.h>
-//#include <netinet/ip.h>
-//#include <netinet/ip_icmp.h>
 #define BUF 256
 
 #include <unistd.h>
