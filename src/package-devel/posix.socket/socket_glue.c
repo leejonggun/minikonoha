@@ -164,17 +164,19 @@ void toSockaddr(struct sockaddr_in *addr, const char *ip, const int port, const 
 int Sys_Ex_Diagnosis(char *dsthost) {
 	//struct sock_ctx -> hostname, IP, Gateway IP, routing table, iptables settings
 	int ret = 0;
-	FILE *fp;
+	FILE *fp, *output;
 	char buf[BUF];
-	char cmdline[BUF] = "minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Evidences.ds ";
+	char cmdline[BUF] = "minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Demo.ds ";
 	strcat(cmdline, dsthost);
 	fprintf(stderr, "\"%s\"\n", cmdline);
+	output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w");
 	if ((fp = popen(cmdline, "r")) == NULL) {
 		fprintf(stderr, "can't exec \"%s\"\n", cmdline);
 		return -1;
 	}
 	while(fgets(buf, BUF, fp) != NULL) {
 		(void) fputs(buf, stdout);
+		(void) fputs(buf, output);
 		if (strstr(buf, "SystemFault") != NULL) {
 			ret = SystemFault;
 		} else if (strstr(buf, "ExternalFault") != NULL) {
@@ -184,6 +186,7 @@ int Sys_Ex_Diagnosis(char *dsthost) {
 		}
 	}
 	(void) pclose(fp);
+	(void) fclose(output);
 	fprintf(stderr, "Finished.\n");
 	return ret;
 }
