@@ -181,12 +181,11 @@ int Sys_Ex_Diagnosis(char *dsthost) {
 	}
 	(void) pclose(fp);
 	(void) fclose(output);
-
 	output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
 	fp = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
-	if (strstr(output, "SystemFault") != NULL) { ret = SystemFault; }
-	if (strstr(fp, "ExternalFault") != NULL) { ret = ExternalFault; }
-	(void) pclose(fp);
+	if (strstr(output, "false") < strstr(output, "Nslookup")) { ret = SystemFault; }
+	if (strstr(fp, "Nslookup") != NULL || strstr(fp, "false") != NULL) { ret = ExternalFault; }
+//	(void) pclose(fp);
 	(void) fclose(output);
 
 	fprintf(stderr, "Finished.\n");
