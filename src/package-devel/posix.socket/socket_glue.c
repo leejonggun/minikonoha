@@ -170,6 +170,7 @@ int Sys_Ex_Diagnosis(char *dsthost) {
 	strcat(cmdline, dsthost);
 	fprintf(stderr, "\"%s\"\n", cmdline);
 	output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w");
+	fprintf(stderr, "/home/joseph/workspace/TRY/DCaseDB/test/output.txt");
 	if ((fp = popen(cmdline, "r")) == NULL) {
 		fprintf(stderr, "can't exec \"%s\"\n", cmdline);
 		return -1;
@@ -177,16 +178,17 @@ int Sys_Ex_Diagnosis(char *dsthost) {
 	while(fgets(buf, BUF, fp) != NULL) {
 		(void) fputs(buf, stdout);
 		(void) fputs(buf, output);
-		if (strstr(buf, "SystemFault") != NULL) {
-			ret = SystemFault;
-		} else if (strstr(buf, "ExternalFault") != NULL) {
-			ret = ExternalFault;
-		} else if (strstr(buf, "Success") != NULL) {
-			ret = 0;
-		}
 	}
 	(void) pclose(fp);
 	(void) fclose(output);
+
+	output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
+	fp = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
+	if (strstr(output, "SystemFault") != NULL) { ret = SystemFault; }
+	if (strstr(fp, "ExternalFault") != NULL) { ret = ExternalFault; }
+	(void) pclose(fp);
+	(void) fclose(output);
+
 	fprintf(stderr, "Finished.\n");
 	return ret;
 }
@@ -204,10 +206,10 @@ int diagnosis_detail(char *host, int Guessed_UserFault, int Guessed_SoftwareFaul
 	}
 	if (Guessed_ExternalFault || Guessed_SystemFault) {
 		if ((ret = Sys_Ex_Diagnosis(host)) == -1) {//Run Network Diagnosis Script & inform the fault.
-			fprintf(stderr, "Error:Diagnosis SystemFault&ExternalFault");
+//			fprintf(stderr, "Error:Diagnosis SystemFault&ExternalFault");
 			return -1;
 		}
-		fprintf(stderr, "ret = %d\n", ret);
+//		fprintf(stderr, "ret = %d\n", ret);
 	}
 	return user_fault | software_fault | ret;
 }
