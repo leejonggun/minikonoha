@@ -165,34 +165,29 @@ int Sys_Ex_Diagnosis(char *dsthost) {
 	//struct sock_ctx -> hostname, IP, Gateway IP, routing table, iptables settings
 	int ret = 0;
 	FILE *fp, *output;
-	char buf[BUF], string[BUF] = "";
-	char cmdline[BUF] = "minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Demo.ds ";
-	strcat(cmdline, dsthost);
-	fprintf(stderr, "\"%s\"\n", cmdline);
+	char buf[BUF];
+	char diagcmd[BUF] = "minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Demo.ds ";
+	char updatecmd[BUF] = "minikonoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
+	strcat(diagcmd, dsthost);
+	fprintf(stderr, "\"%s\"\n", diagcmd);
 
-	output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w");
-	fprintf(stderr, "/home/joseph/workspace/TRY/DCaseDB/test/output.txt\n");
-	if ((fp = popen(cmdline, "r")) == NULL) {
-		fprintf(stderr, "can't exec \"%s\"\n", cmdline);
+	if ((output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w")) == NULL) {
+		fprintf(stderr, "can't open file \"output.txt\"\n", output);
+		return -1;
+	}
+	if ((fp = popen(diagcmd, "r")) == NULL) {
+		fprintf(stderr, "can't exec \"%s\"\n", diagcmd);
 		return -1;
 	}
 
 	while(fgets(buf, BUF, fp) != NULL) {
-		(void) fputs(buf, stdout);
+		(void) fputs(buf, stdout);//Debug print
 		(void) fputs(buf, output);
-		strcat(string, buf);
 	}
 	(void) pclose(fp);
 	(void) fclose(output);
-	fprintf(stderr, "string = %s\n", string);
-
-//	output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
-//	fp = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
-//	if (strstr(string, "false") != NULL) { ret = SystemFault; fprintf(stderr, "fuga\n");}
-//	if (strstr(fp, "Nslookup") != NULL || strstr(fp, "false") != NULL) { ret = ExternalFault; fprintf(stderr, "foo\n");}
-//	(void) pclose(fp);
-//	(void) fclose(output);
-
+	char result_filename[BUF] = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
+	system(strcat(updatecmd, result_filename));
 	fprintf(stderr, "Finished.\n");
 	return ret;
 }
