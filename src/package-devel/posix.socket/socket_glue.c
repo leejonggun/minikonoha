@@ -165,28 +165,33 @@ int Sys_Ex_Diagnosis(char *dsthost) {
 	//struct sock_ctx -> hostname, IP, Gateway IP, routing table, iptables settings
 	int ret = 0;
 	FILE *fp, *output;
-	char buf[BUF];
+	char buf[BUF], string[BUF] = "";
 	char cmdline[BUF] = "minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Demo.ds ";
 	strcat(cmdline, dsthost);
 	fprintf(stderr, "\"%s\"\n", cmdline);
+
 	output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w");
-	fprintf(stderr, "/home/joseph/workspace/TRY/DCaseDB/test/output.txt");
+	fprintf(stderr, "/home/joseph/workspace/TRY/DCaseDB/test/output.txt\n");
 	if ((fp = popen(cmdline, "r")) == NULL) {
 		fprintf(stderr, "can't exec \"%s\"\n", cmdline);
 		return -1;
 	}
+
 	while(fgets(buf, BUF, fp) != NULL) {
 		(void) fputs(buf, stdout);
 		(void) fputs(buf, output);
+		strcat(string, buf);
 	}
 	(void) pclose(fp);
 	(void) fclose(output);
-	output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
-	fp = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
-	if (strstr(output, "false") < strstr(output, "Nslookup")) { ret = SystemFault; }
-	if (strstr(fp, "Nslookup") != NULL || strstr(fp, "false") != NULL) { ret = ExternalFault; }
+	fprintf(stderr, "string = %s\n", string);
+
+//	output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
+//	fp = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "r");
+//	if (strstr(string, "false") != NULL) { ret = SystemFault; fprintf(stderr, "fuga\n");}
+//	if (strstr(fp, "Nslookup") != NULL || strstr(fp, "false") != NULL) { ret = ExternalFault; fprintf(stderr, "foo\n");}
 //	(void) pclose(fp);
-	(void) fclose(output);
+//	(void) fclose(output);
 
 	fprintf(stderr, "Finished.\n");
 	return ret;
@@ -205,10 +210,8 @@ int diagnosis_detail(char *host, int Guessed_UserFault, int Guessed_SoftwareFaul
 	}
 	if (Guessed_ExternalFault || Guessed_SystemFault) {
 		if ((ret = Sys_Ex_Diagnosis(host)) == -1) {//Run Network Diagnosis Script & inform the fault.
-//			fprintf(stderr, "Error:Diagnosis SystemFault&ExternalFault");
 			return -1;
 		}
-//		fprintf(stderr, "ret = %d\n", ret);
 	}
 	return user_fault | software_fault | ret;
 }
