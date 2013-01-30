@@ -161,13 +161,14 @@ void toSockaddr(struct sockaddr_in *addr, const char *ip, const int port, const 
 //	return ret;
 //}
 
-int Sys_Ex_Diagnosis(char *dsthost) {
+int Sys_Ex_Diagnosis(const char *dsthost) {
 	//struct sock_ctx -> hostname, IP, Gateway IP, routing table, iptables settings
 	int ret = 0;
 	FILE *fp, *output;
-	char buf[BUF];
+	char buf[BUF], string[BUF] = "";
 	char diagcmd[BUF] = "minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Demo.ds ";
 	char updatecmd[BUF] = "minikonoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
+	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
 	strcat(diagcmd, dsthost);
 	fprintf(stderr, "\"%s\"\n", diagcmd);
 
@@ -181,13 +182,18 @@ int Sys_Ex_Diagnosis(char *dsthost) {
 	}
 
 	while(fgets(buf, BUF, fp) != NULL) {
-		(void) fputs(buf, stdout);//Debug print
 		(void) fputs(buf, output);
+		strcat(string, buf);
 	}
 	(void) pclose(fp);
 	(void) fclose(output);
-	char result_filename[BUF] = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
-	system(strcat(updatecmd, result_filename));
+	fprintf(stdout, "%s\n", string);
+	if (strstr(string, "false") > 0) {
+		ret = SystemFault;
+	}
+	if (system(strcat(updatecmd, result_filename)) == -1) {
+		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
+	}
 	fprintf(stderr, "Finished.\n");
 	return ret;
 }
