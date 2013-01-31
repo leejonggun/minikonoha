@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 2012, the Konoha project authors. All rights reserved.
+ * Copyright (c) 2012-2013, the Konoha project authors. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -54,7 +54,7 @@ static KMETHOD Expression_LispOperator(KonohaContext *kctx, KonohaStack *sfp)
 		}
 		int size = kNode_GetNodeListSize(kctx, expr);
 		if(size == 1) { /* case (+) */
-			FIXME_ASSERT(0 && "(+) is not supported");
+			assert(0 && "(+) is not supported");
 		}
 		else if(size == 2) { /* case (+ 1) */
 			KReturnUnboxValue(endIdx);

@@ -64,26 +64,6 @@ void main() {
         "Lib.Mecab", "Lib.Mpi", "Lib.Openssl", "Lib.Python", "MiniKonoha.Sql", "MiniKonoha.NameSpace", "Syntax.JavaImport", "Java.String", "MiniKonoha.Eval"];
 
 
-    before.add("MiniKonoha.Desugar");
-    after.add( "MiniKonoha.Syntax");
-    before.add("Type.Var");
-    after.add( "Type.StaticVar");
-    before.add("Type.Untyped");
-    after.add( "Syntax.UntypedVariable");
-
-    before.add("cstyle\", \"null");
-    after.add( "Syntax.Null");
-    before.add("cstyle\", \"while");
-    after.add( "Syntax.CStyleWhile");
-    before.add("cstyle\", \"break");
-    after.add( "Syntax.CStyleWhile");
-    before.add("cstyle\", \"continue");
-    after.add( "Syntax.CStyleWhile");
-    before.add("cstyle\", \"for");
-    after.add( "Syntax.CStyleFor");
-    before.add("cstyle\", \"$forStmt");
-    after.add( "Syntax.CStyleFor");
-
     while (true) {
         if (i == args.getSize()) {
             break;
@@ -94,6 +74,7 @@ void main() {
         data = replace(args[i], data, "if \\(", "if (", "if(");
         data = replace(args[i], data, "KDEFINE_PACKAGE\\* ", "KDEFINE_PACKAGE* ", "KDEFINE_PACKAGE *");
         data = replace(args[i], data, "KKMethodName", "KKMethodName", "KMethodName");
+        data = replace(args[i], data, "NodeingErrorMessage", "NodeingErrorMessage", "BlockingErrorMessage");
         int j = 0;
         while (j < before.getSize()) {
             data = replace(args[i], data,

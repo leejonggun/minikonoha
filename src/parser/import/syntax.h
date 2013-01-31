@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 2012, the Konoha project authors. All rights reserved.
+ * Copyright (c) 2012-2013, the Konoha project authors. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -766,8 +766,9 @@ static KMETHOD TypeCheck_MethodCall(KonohaContext *kctx, KonohaStack *sfp)
 	}
 	if(mtd != NULL) {
 		texpr = TypeCheckMethodParam(kctx, mtd, expr, ns, reqc);
+		KReturn(texpr);
 	}
-	KReturn(texpr);
+	KReturn(expr);
 }
 
 // --------------------------------------------------------------------------

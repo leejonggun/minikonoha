@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 2012, the Konoha project authors. All rights reserved.
+ * Copyright (c) 2012-2013, the Konoha project authors. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -325,6 +325,7 @@ void LoadDefaultSugarMethod(KonohaContext *kctx, kNameSpace *ns)
 	KSetKLibFunc(0, ReportScriptMessage,           TRACE_ReportScriptMessage,           NULL);
 	KSetKLibFunc(0, kNameSpace_RequirePackage,      kNameSpace_RequirePackage,      NULL);
 	KSetKLibFunc(0, kNameSpace_ImportPackage,       kNameSpace_ImportPackage,       NULL);
+	KSetKLibFunc(0, kNameSpace_LoadScript,          kNameSpace_LoadScript,          NULL);
 //	KSetKLibFunc(0, kNameSpace_ImportPackageSymbol, kNameSpace_ImportPackageSymbol, NULL);
 	KSetKLibFunc(0, kNameSpace_GetConstNULL,        kNameSpace_GetConstNULL,        NULL);
 	KDEFINE_METHOD MethodData[] = {
