@@ -166,8 +166,8 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	int ret = 0;
 	FILE *fp, *output;
 	char buf[BUF], string[BUF] = "";
-	char diagcmd[BUF] = "minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Demo.ds ";
-	char updatecmd[BUF] = "sudo minikonoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
+	char diagcmd[BUF] = "sudo minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Demo.ds ";
+	char updatecmd[BUF] = "minikonoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
 	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
 	strcat(diagcmd, dsthost);
 	fprintf(stderr, "\"%s\"\n", diagcmd);
@@ -190,9 +190,9 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	fprintf(stdout, "%s\n", string);
 	if (strstr(string, "false") > 0) {
 		ret = SystemFault;
-	} else {
+	}/* else {
 		ret = ExternalFault;
-	}
+	}*/
 	if (system(strcat(updatecmd, result_filename)) == -1) {
 		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
 	}
