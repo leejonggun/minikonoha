@@ -190,6 +190,8 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	fprintf(stdout, "%s\n", string);
 	if (strstr(string, "false") > 0) {
 		ret = SystemFault;
+	} else {
+		ret = ExternalFault;
 	}
 	if (system(strcat(updatecmd, result_filename)) == -1) {
 		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
