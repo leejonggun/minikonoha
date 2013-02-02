@@ -167,7 +167,7 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	FILE *fp, *output;
 	char buf[BUF], string[BUF] = "";
 	char diagcmd[BUF] = "minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Demo.ds ";
-	char updatecmd[BUF] = "minikonoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
+	char updatecmd[BUF] = "sudo minikonoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
 	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
 	strcat(diagcmd, dsthost);
 	fprintf(stderr, "\"%s\"\n", diagcmd);
@@ -211,6 +211,7 @@ int diagnosis_detail(char *host, int Guessed_UserFault, int Guessed_SoftwareFaul
 	}
 	if (Guessed_ExternalFault || Guessed_SystemFault) {
 		if ((ret = Sys_Ex_Diagnosis(host)) == -1) {//Run Network Diagnosis Script & inform the fault.
+			fprintf(stderr, "Something's wrong.");
 			return -1;
 		}
 	}
