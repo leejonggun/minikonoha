@@ -22,11 +22,11 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-#include "minikonoha/minikonoha.h"
-#include "minikonoha/klib.h"
-#include "minikonoha/sugar.h"
-#include "minikonoha/konoha_common.h"
-#include "minikonoha/platform.h"
+#include "konoha3/konoha.h"
+#include "konoha3/klib.h"
+#include "konoha3/sugar.h"
+#include "konoha3/konoha_common.h"
+#include "konoha3/platform.h"
 #include "test_konoha.h"
 
 /* checking header files can compile at g++ */

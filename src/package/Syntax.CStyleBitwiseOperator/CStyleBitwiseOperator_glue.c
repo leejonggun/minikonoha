@@ -24,14 +24,14 @@
 
 /* ************************************************************************ */
 
-#include <minikonoha/minikonoha.h>
-#include <minikonoha/sugar.h>
+#include <konoha3/konoha.h>
+#include <konoha3/sugar.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <minikonoha/import/methoddecl.h>
+#include <konoha3/import/methoddecl.h>
 
 static KMETHOD Int_opPlus(KonohaContext *kctx, KonohaStack *sfp)
 {

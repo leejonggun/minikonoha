@@ -28,11 +28,11 @@
 
 #include <math.h>
 
-#include <minikonoha/minikonoha.h>
-#include <minikonoha/sugar.h>
-#include <minikonoha/konoha_common.h>
+#include <konoha3/konoha.h>
+#include <konoha3/sugar.h>
+#include <konoha3/konoha_common.h>
 #include "mt19937ar.h"
-#include <minikonoha/import/methoddecl.h>
+#include <konoha3/import/methoddecl.h>
 
 #ifdef __cplusplus
 extern "C"{

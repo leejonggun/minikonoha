@@ -22,9 +22,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-#include <minikonoha/minikonoha.h>
-#include <minikonoha/sugar.h>
-#include <minikonoha/import/methoddecl.h>
+#include <konoha3/konoha.h>
+#include <konoha3/sugar.h>
+#include <konoha3/import/methoddecl.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -197,6 +197,9 @@ static void KClass_InitField(KonohaContext *kctx, KClassVar *definedClass, KClas
 	definedClass->cstruct_size = size64((fieldsize * sizeof(kObject *)) + sizeof(kObjectHeader));
 	DBG_P("superClass->fieldsize=%d, definedFieldSize=%d, cstruct_size=%d", superClass->fieldsize, fieldInitSize, definedClass->cstruct_size);
 	if(fieldsize > 0) {
+		if(definedClass->fieldItems != NULL) {
+			KFree(definedClass->fieldItems, definedClass->fieldAllocSize * sizeof(KClassField));
+		}
 		definedClass->fieldItems = (KClassField *)KCalloc_UNTRACE(fieldsize, sizeof(KClassField));
 		definedClass->fieldAllocSize = fieldsize;
 		definedClass->fieldsize = superClass->fieldsize; /* supsize */
@@ -356,17 +359,16 @@ static KMETHOD Statement_class(KonohaContext *kctx, KonohaStack *sfp)
 {
 	VAR_TypeCheck(stmt, ns, reqc);
 	kToken *tokenClassName = SUGAR kNode_GetToken(kctx, stmt, KSymbol_("$ClassName"), NULL);
-	int isNewlyDefinedClass = false;
 	KClassVar *definedClass = (KClassVar *)KLIB kNameSpace_GetClassByFullName(kctx, ns, kString_text(tokenClassName->text), kString_size(tokenClassName->text), NULL);
-	if(definedClass == NULL) {   // Already defined
+	const int isNewlyDefinedClass = (definedClass == NULL);
+	if(isNewlyDefinedClass) {
 		kshortflag_t cflag = kNode_ParseClassFlag(kctx, stmt, KClassFlag_Virtual);
 		KMakeTraceUL(trace, sfp, kNode_uline(stmt));
 		definedClass = kNameSpace_DefineClassName(kctx, ns, cflag, tokenClassName->text, trace);
-		isNewlyDefinedClass = true;
 	}
 	kNode *block = kNode_ParseClassNodeNULL(kctx, stmt, tokenClassName);
 	size_t declsize = kNode_countFieldSize(kctx, block);
-	if(isNewlyDefinedClass) {   // Already defined
+	if(isNewlyDefinedClass || (KClass_Is(Virtual, definedClass) && block != NULL)) {
 		KClass *superClass = KClass_Object;
 		kToken *tokenSuperClass= SUGAR kNode_GetToken(kctx, stmt, KSymbol_("extends"), NULL);
 		if(tokenSuperClass != NULL) {
@@ -382,7 +384,7 @@ static KMETHOD Statement_class(KonohaContext *kctx, KonohaStack *sfp)
 		size_t initsize = (block != NULL) ? declsize : initFieldSizeOfVirtualClass(superClass);
 		KClass_InitField(kctx, definedClass, superClass, initsize);
 	}
-	else {
+	else { // Already defined
 		if(declsize > 0 && !KClass_Is(Virtual, definedClass)) {
 			KReturn(SUGAR MessageNode(kctx, stmt, NULL, ns, ErrTag, "%s has already defined", KClass_text(definedClass)));
 		}
