@@ -128,11 +128,13 @@ class Context extends DBNode {
 		this.context = new Json();
 
 		this.PrivateUpdate(content);
-		if(content.hasKey("context")) {
-			Json array = content.get("context");
+		if(content.hasKey("properties")) {
+			Json array = content.get("properties");
 			String[] keys = array.keys();
-			for(int i = 0; i < keys.getSize(); i = i + 1) {
+			int i = 0;
+			while(i < keys.getSize()) {
 				this.context.setString(keys[i],array.getString(keys[i]));//TODO validation
+				i = i + 1;
 			}
 		}
 	}
@@ -288,24 +290,6 @@ class Evidence extends DBNode {
 
 	@Public Json GetContext(){
 		return this.parent.GetContext();
-	}
-}
-
-//TODO
-class DScriptEvidence extends DBNode {
-	DScriptEvidence() {}
-	@Public Json toJson() {
-		Json json = this.PrivateToJson();
-		json.setString("type","DScriptEvidence");
-		return json;
-	}
-}
-
-class DScriptContext extends Context {
-	@Public Json toJson() {
-		Json json = this.PrivateToJson();
-		json.setString("type","DScriptContext");
-		return json;
 	}
 }
 
@@ -483,7 +467,7 @@ class Branch {
 			}
 			i = i + 1;
 		}
-		if(node.argument_id == -1) {
+		if(node.argument_id < 1) {
 			this.nodes.add(node);
 			node.argument_id = this.argument_id;
 			return true;
@@ -694,10 +678,6 @@ class DriverMySQL extends DBDriver {
 			return new Context(content);
 		} else if (NodeType == "Evidence") {
 			return new Evidence(content);
-		} else if (NodeType == "DScriptEvidence") {
-			return new DScriptEvidence(content);
-		} else if (NodeType == "DScriptContext") {
-			return new DScriptContext(content);
 		}
 		return null; //FIXME
 	}
@@ -770,7 +750,6 @@ class DriverMySQL extends DBDriver {
 				nodes.add(context);
 			} else {
 				nodes.add(node);
-//				System.p("GetDBNodeList:" + nodeType + node.node_id + "," + node.argument_id + "," + node.branch_id + ", Adr:" + node);
 			}
 		}
 		return this.GetLinks(nodes);
@@ -805,10 +784,7 @@ class DriverMySQL extends DBDriver {
 
 		DBNode[] nodes = this.GetDBNodeList(argument_id,branch_id);
 		DBNode   root  = this.PrivateGetNode(nodes,goalId);
-//		System.p("" + root + "root.node_id:" + root.node_id + "description:" + root.description);
 		Branch branch = new Branch(nodes,root);
-//		System.p("branch_id = " + branch_id);
-//		System.p("branch.nodes = " + branch.nodes);
 		DCaseArgument argument = new DCaseArgument(branch_id,branch);
 		return argument;
 	}
@@ -981,10 +957,7 @@ class API {
 			return this.arguments.get(argId);
 		}else{
 			DCaseArgument argument = this.db.GetArgument(argument_id);
-//			System.p("argument = " + argument + "argId = " + argId);
 			this.arguments.set(argId,argument);
-//			System.p("arguments = " + arguments);
-//			System.p("arguments.get(argId) = " + arguments.get(argId));
 			return argument;
 		}
 	}
@@ -999,7 +972,11 @@ class API {
 
 	@Public DBNode CreateDBNode(Json content) {
 		String NodeType = content.getString("type");
-		return this.db.CreateDBNode(NodeType,content);
+		DBNode node = this.db.CreateDBNode(NodeType,content);
+		if(NodeType == "Context" && content.hasKey("properties")) {
+			this.db.AddContext(node.node_id,content.get("properties"));
+		}
+		return node;
 	}
 
 	@Public void InsertLink(int id, DBNode parent, DBNode child) {
