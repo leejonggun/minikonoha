@@ -22,11 +22,6 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#define BUF 256
-
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -161,160 +156,6 @@ void toSockaddr(struct sockaddr_in *addr, const char *ip, const int port, const 
 //	return ret;
 //}
 
-int Sys_Ex_Diagnosis(const char *dsthost) {
-	//struct sock_ctx -> hostname, IP, Gateway IP, routing table, iptables settings
-	int ret = 0;
-	FILE *fp, *output;
-	char buf[BUF], string[BUF] = "";
-	char diagcmd[BUF] = "sudo minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Demo.ds ";
-	char updatecmd[BUF] = "minikonoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
-	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
-	strcat(diagcmd, dsthost);
-	fprintf(stderr, "\"%s\"\n", diagcmd);
-
-	if ((output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w")) == NULL) {
-		fprintf(stderr, "can't open file \"output.txt\"\n", output);
-		return -1;
-	}
-	if ((fp = popen(diagcmd, "r")) == NULL) {
-		fprintf(stderr, "can't exec \"%s\"\n", diagcmd);
-		return -1;
-	}
-
-	while(fgets(buf, BUF, fp) != NULL) {
-		(void) fputs(buf, output);
-		strcat(string, buf);
-	}
-	(void) pclose(fp);
-	(void) fclose(output);
-	fprintf(stdout, "%s\n", string);
-	if (strstr(string, "false") > 0) {
-		ret = SystemFault;
-	}/* else {
-		ret = ExternalFault;
-	}*/
-	if (system(strcat(updatecmd, result_filename)) == -1) {
-		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
-	}
-	fprintf(stderr, "Finished.\n");
-	return ret;
-}
-
-int diagnosis_detail(char *host, int Guessed_UserFault, int Guessed_SoftwareFault, int Guessed_SystemFault, int Guessed_ExternalFault) {
-	int user_fault = Guessed_UserFault;
-	int software_fault = Guessed_SoftwareFault;
-	int ret = Guessed_SystemFault | Guessed_ExternalFault;
-
-	fprintf(stderr, "user_fault = %d, software_fault = %d, system_fault = %d, external_fault = %d\n", user_fault, software_fault, Guessed_SystemFault, Guessed_ExternalFault);
-	if ((!user_fault) && (software_fault)) {
-		software_fault = SoftwareFault;//How to check given by user or given by programmer statically.
-	} else {
-		software_fault = 0;
-	}
-	if (Guessed_ExternalFault || Guessed_SystemFault) {
-		if ((ret = Sys_Ex_Diagnosis(host)) == -1) {//Run Network Diagnosis Script & inform the fault.
-			fprintf(stderr, "Something's wrong.");
-			return -1;
-		}
-	}
-	return user_fault | software_fault | ret;
-}
-
-static int diagnosisSocketFaultType(KonohaContext *kctx, char *Host, int err, int Guessed_UserFault)
-{
-	switch(err) {
-		case 0:      //Success
-			return 0;
-		case EPERM:  /* 1. The user tried to connect to a broadcast address without having the socket broadcast flag enabled. Firewall rules forbid connection. */	//for connect, accept
-			return SoftwareFault|SystemFault;
-
-		case ENOENT: /* 2. No such file or directory */	//for bind
-			return Guessed_UserFault|SoftwareFault;
-		case EBADF:  /* 9. Bad file number */	//for bind, listen, connect, accept
-			return SoftwareFault;
-
-		case EINTR: /* 4. The system call was interrupted by a signal that was caught before a valid connection arrived */	//for connect, accept
-			return Guessed_UserFault|SoftwareFault;
-//			break;
-		case EAGAIN: /* 11. No more free local ports or insufficient entries in the routhing cache. */	//for, connect, accept
-			return SoftwareFault|SystemFault;
-
-		case ENOMEM: /* 12. Insufficient memory is available */	//for socket, bind, accept
-			return SystemFault;
-
-		case EACCES: /* 13. Permission denied and/or protocol is denied, the connection failed because of a local firewall rule*/	//for socket, bind, connect
-
-			return Guessed_UserFault|SystemFault;
-
-		case EFAULT: /* 14 The addr argument is not writalbe */	//for bind, connect, accept
-			return SoftwareFault/*|SystemFault TODO:Stack size depends on the architecture of a PC.スタックにアローケートされている場合,かつスタックオーバーフロー*/;
-
-		case ENOTDIR: /*20 Not a directory */	//for bind
-		case EINVAL: /* 22 Unknown protocol, addrlen is invalid, or the socket was not in the AF_UNIX family */	//for socket, bind
-			return diagnosis_detail(Host, Guessed_UserFault, SoftwareFault, 0, 0);
-//			return Guessed_UserFault|SoftwareFault;
-
-		case ENFILE:  /* 23. File table overflow */	//for socket, accept
-		case EMFILE: /* 24. Too many open files */	//for socket, accept
-			return SystemFault;
-		case EROFS:  /* 30 The socket inode would reside on a read-only file system */	//for bind
-			return SystemFault;
-
-		case ENAMETOOLONG:  /* 36 File name too long */	//for bind
-			return Guessed_UserFault|SoftwareFault;
-		case ELOOP: /* 40 Too many symbolic links encountered */	//for bind
-			return Guessed_UserFault|SoftwareFault;
-
-		case ENOTSOCK: /* The file descriptor is not associated with a socket */	//for bind, listen, connect, accept
-			return SoftwareFault;
-		case EPROTONOSUPPORT: /* 88 Protocol not supported */	//for socket
-			/*insert a function for increasing the accuracy*/
-			/*サポートするプロトコルが何か(どうやって?)、指定されたプロトコルが何か比較する*/
-			return Guessed_UserFault|SoftwareFault;
-		case EPROTO:   /* 92 Protocol error */	//for accept
-			return SoftwareFault;
-
-		case ESOCKTNOSUPPORT: /* 94 Socket type not supported */
-		case EOPNOTSUPP:   /* 95 The referenced socket type is not SOCK_STREAM, Not supported the socket type*/	//for listen, accept
-		case EAFNOSUPPORT: /* 97 Address family not supported by protocol */	//for socket, connect
-			return SoftwareFault;
-		case EADDRINUSE:   /* 98 Address already in use */	//for bind, listen, connect
-			return SoftwareFault;
-		case EADDRNOTAVAIL: /* 99 Cannot assign requested address */	//for bind
-			return SoftwareFault;
-		case ENETUNREACH: /* 101 Network is unreachable */	//for connect
-			return diagnosis_detail(Host, 0, SoftwareFault, SystemFault, 0);
-			/*pingを飛ばすではなく、pingの挙動を理解してその返り値で判定する*/
-//			return SystemFault;
-		case ECONNABORTED: /* 103 A connection has been aborted */	//for accept
-			return SoftwareFault;
-
-		case ENOBUFS:   /* 105 Insufficient buffer space available */	//for socket, accept
-			return SystemFault;
-
-		case EISCONN:   /* 106 The socket is already connected */	//for connect
-			return Guessed_UserFault;
-		case ETIMEDOUT: /* 110 Connection timed out while attempting connection. The server may be too busy*/	//for connect
-			return diagnosis_detail(Host, Guessed_UserFault, SoftwareFault, SystemFault, ExternalFault);
-//			return SoftwareFault|SystemFault|ExternalFault;
-		case ECONNREFUSED: /* 111 No-one listening on the remote address*/	//for connect
-			return diagnosis_detail(Host, Guessed_UserFault, SoftwareFault, 0, ExternalFault);
-			//return ExternalFault;
-		case EHOSTUNREACH: /* 113 No route to host */	//for connect, but man doesn't have this.
-			return diagnosis_detail(Host, Guessed_UserFault, SoftwareFault, 0, ExternalFault);
-			//return Guessed_UserFault|SoftwareFault|ExternalFault;
-
-		case EALREADY: /* 114 The socket is nonblocking and a previous connection attempt has not yet been completed.*/	//for connect
-			return Guessed_UserFault;
-		case EINPROGRESS: /* 115 The socket is nonblocking and the connection cannot be completed immediately. */	//for, connect
-			return SoftwareFault;
-		default:
-			break;
-	}
-	fprintf(stderr, "");
-	return Guessed_UserFault | SystemFault| SoftwareFault | ExternalFault;
-}
-
 /* ======================================================================== */
 // [KMETHODS]
 
@@ -358,21 +199,11 @@ KMETHOD System_accept(KonohaContext *kctx, KonohaStack* sfp)
 		//fromSockaddr(kctx, sa, addr);
 	}
 	else {
-		KMakeTrace(trace, sfp);
-		fprintf(stderr, "accept:errno = %d, err = %s\n", errno, strerror(errno));//Joseph
-		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
-		KTraceErrorPoint(trace, fault, "accept",
-			LogUint("socket", WORD2INT(sfp[1].intValue)),
-			LogText("SockAddr", (struct sockaddr *)addr),
-			LogUint("errno", errno),
-			LogText("errstr", strerror(errno)),
-			LogErrno);
-		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
-//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-//				LogText("@", "accept"),
-//				LogUint("errno", errno),
-//				LogText("errstr", strerror(errno))
-//		);
+		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+				LogText("@", "accept"),
+				LogUint("errno", errno),
+				LogText("errstr", strerror(errno))
+		);
 	}
 	KReturnUnboxValue(ret);
 }
@@ -382,9 +213,8 @@ KMETHOD System_bind(KonohaContext *kctx, KonohaStack* sfp)
 {
 	struct sockaddr_in addr;
 
-	kString *srcIP = sfp[2].asString;
 	toSockaddr(&addr,
-			kString_text(srcIP),
+			kString_text(sfp[2].asString),
 			WORD2INT(sfp[3].intValue),
 			WORD2INT(sfp[4].intValue)
 	);
@@ -393,23 +223,11 @@ KMETHOD System_bind(KonohaContext *kctx, KonohaStack* sfp)
 			sizeof(addr)
 	);
 	if(ret != 0) {
-		KMakeTrace(trace, sfp);
-		fprintf(stderr, "bind:errno = %d, err = %s\n", errno, strerror(errno));//Joseph
-		int fault = diagnosisSocketFaultType(kctx, kString_text(srcIP), errno, kString_GuessUserFault(srcIP));
-		KTraceErrorPoint(trace, fault, "bind",
-			LogUint("socket", WORD2INT(sfp[1].intValue)),
-			LogText("srcIP", kString_text(sfp[2].asString)),
-			LogUint("srcPort", WORD2INT(sfp[3].intValue)),
-			LogUint("family", WORD2INT(sfp[4].intValue)),
+		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+			LogText("@", "bind"),
 			LogUint("errno", errno),
-			LogText("errstr", strerror(errno)),
-			LogErrno);
-		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
-//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-//			LogText("@", "bind"),
-//			LogUint("errno", errno),
-//			LogText("errstr", strerror(errno))
-//		);
+			LogText("errstr", strerror(errno))
+		);
 	}
 	KReturnUnboxValue(ret);
 }
@@ -433,10 +251,8 @@ KMETHOD System_close(KonohaContext *kctx, KonohaStack* sfp)
 KMETHOD System_connect(KonohaContext *kctx, KonohaStack* sfp)
 {
 	struct sockaddr_in addr;
-
-	kString *dstIP = sfp[2].asString;
 	toSockaddr(&addr,
-				kString_text(dstIP),
+				kString_text(sfp[2].asString),
 				WORD2INT(sfp[3].intValue),
 				WORD2INT(sfp[4].intValue)
 	);
@@ -446,23 +262,11 @@ KMETHOD System_connect(KonohaContext *kctx, KonohaStack* sfp)
 			sizeof(addr)
 	);
 	if(ret != 0) {
-		KMakeTrace(trace, sfp);
-		fprintf(stderr, "errno in connect = %d, err = %s\n", errno, strerror(errno));//Joseph
-		int fault = diagnosisSocketFaultType(kctx, kString_text(dstIP), errno, kString_GuessUserFault(dstIP));
-		KTraceErrorPoint(trace, fault, "connect",
-			LogUint("socket", WORD2INT(sfp[1].intValue)),
-			LogText("dstIP", kString_text(sfp[2].asString)),
-			LogUint("dstPort", WORD2INT(sfp[3].intValue)),
-			LogUint("family", WORD2INT(sfp[4].intValue)),
+		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+			LogText("@", "connect"),
 			LogUint("errno", errno),
-			LogText("errstr", strerror(errno)),
-			LogErrno);
-		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
-//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-//			LogText("@", "connect"),
-//			LogUint("errno", errno),
-//			LogText("errstr", strerror(errno))
-//		);
+			LogText("errstr", strerror(errno))
+		);
 	}
 	KReturnUnboxValue(ret);
 }
@@ -472,21 +276,11 @@ KMETHOD System_listen(KonohaContext *kctx, KonohaStack* sfp)
 {
 	int ret = listen(WORD2INT(sfp[1].intValue), WORD2INT(sfp[2].intValue));
 	if(ret != 0) {
-		KMakeTrace(trace, sfp);
-		fprintf(stderr, "listen:errno = %d, err = %s\n", errno, strerror(errno));//Joseph
-		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
-		KTraceErrorPoint(trace, fault, "listen",
-			LogUint("socket", WORD2INT(sfp[1].intValue)),
-			LogUint("backlog", WORD2INT(sfp[2].intValue)),
+		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+			LogText("@", "listen"),
 			LogUint("errno", errno),
-			LogText("errstr", strerror(errno)),
-			LogErrno);
-		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
-//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-//			LogText("@", "listen"),
-//			LogUint("errno", errno),
-//			LogText("errstr", strerror(errno))
-//		);
+			LogText("errstr", strerror(errno))
+		);
 	}
 	KReturnUnboxValue(ret);
 }
@@ -585,21 +379,10 @@ KMETHOD System_Setsockopt(KonohaContext *kctx, KonohaStack* sfp)
 //					  ba->bytesize,
 //					  (int)sfp[3].intValue);
 //	if(ret < 0) {
-//		KMakeTrace(trace, sfp);
-//		fprintf(stderr, "errno in recv = %d, err = %s\n", errno, strerror(errno));//Joseph
-//		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
-//		KTraceErrorPoint(trace, fault, "recv",
-//			LogUint("socket", WORD2INT(sfp[1].intValue)),
-//			LogText("buffer", kString_text(sfp[2].asString)),
-//			LogUint("flags", WORD2INT(sfp[3].intValue)),
-//			LogUint("errno", errno),
-//			LogText("errstr", strerror(errno)),
-//			LogErrno);
-//		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
-////		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-////				LogText("@", "recv"),
-////				LogText("perror", strerror(errno))
-////		);
+//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+//				LogText("@", "recv"),
+//				LogText("perror", strerror(errno))
+//		);
 //	}
 //	KReturnUnboxValue(ret);
 //}
@@ -782,20 +565,11 @@ KMETHOD System_socket(KonohaContext *kctx, KonohaStack* sfp)
 					WORD2INT(sfp[2].intValue),
 					WORD2INT(sfp[3].intValue));
 	if(ret < 0) {
-		KMakeTrace(trace, sfp);
-		fprintf(stderr, "socket:errno = %d, err = %s\n", errno, strerror(errno));//Joseph
-		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
-		KTraceErrorPoint(trace, fault, "socket",
-			LogUint("family", WORD2INT(sfp[1].intValue)),
-			LogUint("type", WORD2INT(sfp[2].intValue)),
-			LogUint("protocol", WORD2INT(sfp[3].intValue)),
-			LogErrno);
-		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
-//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-//				LogText("@", "socket"),
-//				LogUint("errno", errno),
-//				LogText("errstr", strerror(errno))
-//		);
+		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+				LogText("@", "socket"),
+				LogUint("errno", errno),
+				LogText("errstr", strerror(errno))
+		);
 	}
 	KReturnUnboxValue(ret);
 }
@@ -932,7 +706,6 @@ static kbool_t socket_PackupNameSpace(KonohaContext *kctx, kNameSpace *ns, int o
 			{KDefineConstInt(SHUT_WR)},
 			{KDefineConstInt(SHUT_RDWR)},
 			{KDefineConstInt(SOMAXCONN)},
-			{KDefineConstInt(IPPROTO_ICMP)},
 			{}
 	};
 	KLIB kNameSpace_LoadConstData(kctx, ns, KConst_(IntData), trace);
