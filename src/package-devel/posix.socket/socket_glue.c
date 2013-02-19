@@ -164,43 +164,43 @@ void toSockaddr(struct sockaddr_in *addr, const char *ip, const int port, const 
 int Sys_Ex_Diagnosis(const char *dsthost) {
 	//struct sock_ctx -> hostname, IP, Gateway IP, routing table, iptables settings
 	int ret = 0;
-	FILE *fp, *output;
-	char buf[BUF], string[BUF] = "";
-	char diagcmd[BUF] = "sudo konoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Experiment.ds ";
-	char updatecmd[BUF] = "konoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
-	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
-	strcat(diagcmd, dsthost);
-	fprintf(stderr, "\"%s\"\n", diagcmd);
-
-	if ((output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w")) == NULL) {
-		fprintf(stderr, "can't open file \"output.txt\"\n", output);
-		return -1;
-	}
-
-	if ((fp = popen(diagcmd, "r")) == NULL) {
-		fprintf(stderr, "can't exec \"%s\"\n", diagcmd);
-		return -1;
-	}
-
-	while(fgets(buf, BUF, fp) != NULL) {
-		(void) fputs(buf, output);
-		strcat(string, buf);
-	}
-	(void) pclose(fp);
-	(void) fclose(output);
-	fprintf(stdout, "%s\n", string);
-	if (strstr(string, "false") > 0) {
-		ret = SystemFault;
-	}/* else {
-		ret = ExternalFault;
-	}*/
-	fprintf(stderr, "before exec update\n");
-	strcat(updatecmd, result_filename);
-	fprintf(stdout,"%s\n",updatecmd);
-	if (system(updatecmd) == -1) {
-		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
-	}
-	fprintf(stderr, "Finished.\n");
+//	FILE *fp, *output;
+//	char buf[BUF], string[BUF] = "";
+//	char diagcmd[BUF] = "sudo konoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Experiment.ds ";
+//	char updatecmd[BUF] = "konoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
+//	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
+//	strcat(diagcmd, dsthost);
+//	fprintf(stderr, "\"%s\"\n", diagcmd);
+//
+//	if ((output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w")) == NULL) {
+//		fprintf(stderr, "can't open file \"output.txt\"\n", output);
+//		return -1;
+//	}
+//
+//	if ((fp = popen(diagcmd, "r")) == NULL) {
+//		fprintf(stderr, "can't exec \"%s\"\n", diagcmd);
+//		return -1;
+//	}
+//
+//	while(fgets(buf, BUF, fp) != NULL) {
+//		(void) fputs(buf, output);
+//		strcat(string, buf);
+//	}
+//	(void) pclose(fp);
+//	(void) fclose(output);
+//	fprintf(stdout, "%s\n", string);
+//	if (strstr(string, "false") > 0) {
+//		ret = SystemFault;
+//	}/* else {
+//		ret = ExternalFault;
+//	}*/
+//	fprintf(stderr, "before exec update\n");
+//	strcat(updatecmd, result_filename);
+//	fprintf(stdout,"%s\n",updatecmd);
+//	if (system(updatecmd) == -1) {
+//		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
+//	}
+//	fprintf(stderr, "Finished.\n");
 	return ret;
 }
 
