@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define BUF 256
+#define BUF 1024*8
 
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -166,8 +166,8 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	int ret = 0;
 	FILE *fp, *output;
 	char buf[BUF], string[BUF] = "";
-	char diagcmd[BUF] = "sudo minikonoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Experiments.ds ";
-	char updatecmd[BUF] = "minikonoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
+	char diagcmd[BUF] = "sudo konoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Experiment.ds ";
+	char updatecmd[BUF] = "konoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
 	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
 	strcat(diagcmd, dsthost);
 	fprintf(stderr, "\"%s\"\n", diagcmd);
@@ -176,6 +176,7 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 		fprintf(stderr, "can't open file \"output.txt\"\n", output);
 		return -1;
 	}
+
 	if ((fp = popen(diagcmd, "r")) == NULL) {
 		fprintf(stderr, "can't exec \"%s\"\n", diagcmd);
 		return -1;
@@ -193,8 +194,10 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	}/* else {
 		ret = ExternalFault;
 	}*/
-	fprintf(stderr, "before exec update");
-	if (system(strcat(updatecmd, result_filename)) == -1) {
+	fprintf(stderr, "before exec update\n");
+	strcat(updatecmd, result_filename);
+	fprintf(stdout,"%s\n",updatecmd);
+	if (system(updatecmd) == -1) {
 		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
 	}
 	fprintf(stderr, "Finished.\n");
@@ -871,8 +874,8 @@ static kbool_t socket_PackupNameSpace(KonohaContext *kctx, kNameSpace *ns, int o
 		_Public|_Const|_Im, _F(SockAddr_new), KType_SockAddr, KType_SockAddr, KMethodName_("new"), 0,
 		// the function below uses Bytes
 		// FIXME
-		_Public|_Static|_Const|_Im, _F(System_sendto), KType_Int, KType_System, KMethodName_("sendto"), 6, KType_Int, KFieldName_("socket"), KType_Bytes, KFieldName_("msg"), KType_Int, KFieldName_("flag"), KType_String, KFieldName_("dstIP"), KType_Int, KFieldName_("dstPort"), KType_Int, KFieldName_("family"),
-		_Public|_Static|_Const|_Im, _F(System_recv), KType_Int, KType_System, KMethodName_("recv"), 3, KType_Int, KFieldName_("fd"), KType_Bytes, KFieldName_("buf"), KType_Int, KFieldName_("flags"),
+//		_Public|_Static|_Const|_Im, _F(System_sendto), KType_Int, KType_System, KMethodName_("sendto"), 6, KType_Int, KFieldName_("socket"), KType_Bytes, KFieldName_("msg"), KType_Int, KFieldName_("flag"), KType_String, KFieldName_("dstIP"), KType_Int, KFieldName_("dstPort"), KType_Int, KFieldName_("family"),
+//		_Public|_Static|_Const|_Im, _F(System_recv), KType_Int, KType_System, KMethodName_("recv"), 3, KType_Int, KFieldName_("fd"), KType_Bytes, KFieldName_("buf"), KType_Int, KFieldName_("flags"),
 //		_Public|_Static|_Const|_Im, _F(System_recvfrom), KType_Int, KType_System, KMethodName_("recvfrom"), 4, KType_Int, FN_x, KType_Bytes, FN_y, KType_Int, FN_z, KType_Map, FN_v,
 //		_Public|_Static|_Const|_Im, _F(System_send), KType_Int, KType_System, KMethodName_("send"), 3, KType_Int, KFieldName_("fd"), KType_Bytes, KFieldName_("msg"), KType_Int, KFieldName_("flags"),
 		DEND,
