@@ -1,0 +1,26 @@
+// written by Joseph
+
+import("dshell");
+import("konoha.json");
+import("konoha.string");
+
+const DCaseContext = Json;
+
+String name = "";
+
+boolean Gethostip(DCaseContext ctx) {
+	name = ctx.getString("hostname");
+	System.p(name);
+	String[] ret = $(gethostip "${name}").trim().split(" ");
+	String IP = ret.get(1);
+	System.p(IP);
+	return (IP != null);
+}
+
+void main() {
+	DCaseContext ctx = new DCaseContext();
+	ctx.setString("hostname", "www.google.com");
+	Gethostip(ctx);
+}
+
+main();

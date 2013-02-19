@@ -1,0 +1,23 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean RecognitionGW(Json ctx) {
+	boolean ret = true;
+
+//check whether default gateway is recognized or not
+	int gateway = $(netstat -r).search("UG");
+	if (gateway == -1) {
+//		System.p("SystemFault:Network is disconnected.");
+		return false;
+	};
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	System.p(RecognitionGW(ctx));
+}
+
+main();

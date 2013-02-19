@@ -1,0 +1,23 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean CheckNIC(Json ctx) {
+	boolean ret = true;
+
+//check whether network cable is connected or not = check whether NIC is recognized or not
+	String NIC = $(/usr/bin/lspci -nn | grep "Ethernet");
+	if (NIC.search("Ethernet") == -1) {
+//		System.p("SystemFault:NIC is not recognised.");
+		return false;
+	};
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	System.p(CheckNIC(ctx));
+}
+
+main();

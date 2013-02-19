@@ -1,0 +1,31 @@
+// written by Joseph
+
+import("dshell");
+import("konoha.json");
+
+const DCaseContext = Json;
+
+String subnet = "Mask";
+String given_IP = "";
+boolean SubNetMask(DCaseContext ctx) {
+	boolean ret = true;
+//	given_IP = ctx.getString("hostname");
+
+//	String IPAddress = $(gethostip "${given_IP}").trim().split(" ").get(1);
+//	System.p(IPAddress);
+
+//extract a Subnet-Mask IP Address of a string
+	String ifconfig = $(ifconfig | grep "${subnet}");
+	String SubnetMask = ifconfig.substring((ifconfig.search("Mask:") + "Mask:".length), ifconfig.search("\n"));
+	System.p(SubnetMask);
+
+	return ret;
+}
+
+void main() {
+	DCaseContext ctx = new DCaseContext();
+//	ctx.setString("hostname", SCRIPT_ARGV.get(1));
+	SubNetMask(ctx);
+}
+
+main();

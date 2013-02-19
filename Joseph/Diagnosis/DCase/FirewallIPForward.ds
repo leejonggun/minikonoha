@@ -1,0 +1,32 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean FirewallIPForward(Json ctx) {
+	boolean ret = true;
+
+//get iptables setting
+	String setting = $(sudo iptables -L);
+	if (setting == "") {
+		return false;
+	}
+	setting = setting.substring(setting.search("FORWARD"), setting.search("OUTPUT"));
+	String ifconfig = $(echo "${setting}" | grep "DROP");
+	ifconfig = ifconfig.concat($(echo "${setting}" | grep "REJECT"));
+
+	if (ifconfig.search("DROP") > -1) {
+		ret = false;
+	} else if (ifconfig.search("REJECT") > -1) {
+		ret = false;
+	}
+
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	System.p(FirewallIPForward(ctx));
+}
+
+main();

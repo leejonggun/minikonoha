@@ -1,0 +1,45 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean Nslookup(Json ctx) {
+	String host = ctx.getString("hostname");
+	String hostsfile = ctx.getString("hostsfile");
+
+	String hosts = $(cat "${hostsfile}" | grep "${host}");
+	if (hosts.search("${host}") > -1) {
+		return true;
+	}
+
+	String res = $(/usr/bin/nslookup "${host}");
+	if (res == "") {
+		return false;
+	}
+	if (res.search("find") != -1) {//can't find <hostname>:REFUSED, No answer, or NXDOMAIN
+		return false;
+	} else if (res.search("connection timed out") != -1) {//Default DNS server is not working
+//		System.p("SystemFault:DNS server doesn't respond.");
+		String str = $(ip route show | grep "default");
+		String DNS = str.substring(str.search("192"), str.search("dev"));
+//Second try nslookup
+		res = $(/usr/bin/nslookup "${host}" "${DNS}" -timeout=1);
+//		if (res.search("connection timed out") != -1) {//DNS server on the default gateway is not working
+//			System.p("SystemFault:DNS server doesn't have the domain name(${host}).");
+//		} else {//DNS server on the default gateway is working
+//			System.p("SystemFault:DNS server setting is wrong. Check /etc/resolv.conf");
+//		}
+		return false;
+	} else {
+		return true;
+	}
+}
+
+void main() {
+	Json ctx = new Json();
+	ctx.setString("hostname", SCRIPT_ARGV.get(1));
+	ctx.setString("hostsfile", "/etc/hosts");
+	System.p(Nslookup(ctx));
+}
+
+main();

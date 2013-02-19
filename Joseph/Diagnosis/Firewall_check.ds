@@ -1,0 +1,43 @@
+// written by Joseph
+
+import("dshell");
+import("konoha.json");
+
+const DCaseContext = Json;
+
+boolean Firewall_check(DCaseContext ctx) {
+	boolean ret = true;
+
+//get iptables setting
+	String setting = $(sudo iptables -L | grep "DROP");
+	setting = setting.concat($(sudo iptables -L | grep "REJECT"));
+	System.p(setting);
+
+	if (setting.search("INPUT") > -1) {
+		if (setting.search("OUTPUT") > -1) {
+			System.p("INPUT & OUTPUT packet is dropped.");
+		} else {
+			System.p("INPUT packet is dropped.");
+		}
+		ret = false;
+	} else if (setting.search("OUTPUT") > -1) {
+		System.p("OUTPUT packet is dropped");
+		ret = false;
+	}
+
+	if (setting.search("echo-request") > -1) {
+		System.p("icmp echo-request is dropped or rejected. Your PC can't ping.");
+		ret = false;
+	} else if (setting.search("echo-reply") > -1) {
+		System.p("icmp echo-reply is dropped or rejected. Your PC can't accept ping reply.");
+		ret = false;
+	}
+	return ret;
+}
+
+void main() {
+	DCaseContext ctx = new DCaseContext();
+	System.p(Firewall_check(ctx));
+}
+
+main();
