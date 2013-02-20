@@ -610,11 +610,11 @@ KMETHOD System_Setsockopt(KonohaContext *kctx, KonohaStack* sfp)
 ////## int System.recv(int socket, int flags);
 static KMETHOD System_recv(KonohaContext *kctx, KonohaStack* sfp)
 {
-	char* buf[BUF];
-	int ret = recv(WORD2INT(sfp[1].intValue),
-					  buf,
-					  BUF,
-					  (int)sfp[3].intValue);
+	char* buf[1];
+	int ret = 0;
+	while ((ret = recv(WORD2INT(sfp[1].intValue), buf, sizeof(buf), (int)sfp[3].intValue)) > 0) {
+		write(stdout, buf, sizeof(buf));
+	}
 	if(ret < 0) {
 		KMakeTrace(trace, sfp);
 		fprintf(stderr, "errno in recv = %d, err = %s\n", errno, strerror(errno));//Joseph
