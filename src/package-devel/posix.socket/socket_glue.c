@@ -173,7 +173,7 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	fprintf(stderr, "\"%s\"\n", diagcmd);
 
 	if ((output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w")) == NULL) {
-		fprintf(stderr, "can't open file \"output.txt\"\n", output);
+		fprintf(stderr, "can't open file \"output.txt\"\n");
 		return -1;
 	}
 
@@ -823,6 +823,44 @@ static KMETHOD System_sendto(KonohaContext *kctx, KonohaStack* sfp)
 	KReturnUnboxValue(ret);
 }
 
+//## int System.write(int socket, String message);
+static KMETHOD System_write(KonohaContext *kctx, KonohaStack* sfp)
+{
+	kString* msg = sfp[2].asString;
+	// Broken Pipe Signal Mask
+	int ret = write(
+			WORD2INT(sfp[1].intValue),
+			kString_text(msg),
+			kString_size(msg)
+	);
+	if(ret < 0) {
+		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+				LogText("@", "write"),
+				LogUint("errno", errno),
+				LogText("errstr", strerror(errno))
+		);
+	}
+	KReturnUnboxValue(ret);
+}
+
+//## int System.read(int socket, String message);
+static KMETHOD System_read(KonohaContext *kctx, KonohaStack* sfp)
+{
+	char buf[1024*2];
+	int ret = 0;
+	while (ret = read(WORD2INT(sfp[1].intValue), buf, sizeof(buf)) > 0) {
+		write(stdout, buf, ret);
+	}
+	if(ret < 0) {
+		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+				LogText("@", "write"),
+				LogUint("errno", errno),
+				LogText("errstr", strerror(errno))
+		);
+	}
+	KReturnUnboxValue(ret);
+}
+
 //## int System.shutdown(int socket, int how);
 KMETHOD System_shutdown(KonohaContext *kctx, KonohaStack* sfp)
 {
@@ -944,9 +982,12 @@ static kbool_t socket_PackupNameSpace(KonohaContext *kctx, kNameSpace *ns, int o
 		_Public|_Static|_Const|_Im, _F(System_socket), KType_Int, KType_System, KMethodName_("socket"), 3, KType_Int, KFieldName_("family"), KType_Int, KFieldName_("type"), KType_Int, KFieldName_("protocol"),
 		_Public|_Static|_Const|_Im, _F(System_socketpair), KType_Int, KType_System, KMethodName_("socketpair"), 4, KType_Int, KFieldName_("family"), KType_Int, KFieldName_("type"), KType_Int, KFieldName_("protocol"), KType_IntArray, KFieldName_("pairsock"),
 		_Public|_Const|_Im, _F(SockAddr_new), KType_SockAddr, KType_SockAddr, KMethodName_("new"), 0,
-//rebind sendto, recv
+//>>>Joseph
+		_Public|_Static|_Const|_Im, _F(System_write), KType_Int, KType_System, KMethodName_("write"), 2, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"),
+		_Public|_Static|_Const|_Im, _F(System_read), KType_Int, KType_System, KMethodName_("read"), 1, KType_Int, KFieldName_("socket"),
 		_Public|_Static|_Const|_Im, _F(System_sendto), KType_Int, KType_System, KMethodName_("sendto"), 6, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"), KType_Int, KFieldName_("flag"), KType_String, KFieldName_("dstIP"), KType_Int, KFieldName_("dstPort"), KType_Int, KFieldName_("family"),
 		_Public|_Static|_Const|_Im, _F(System_recv), KType_Int, KType_System, KMethodName_("recv"), 2, KType_Int, KFieldName_("fd"), KType_Int, KFieldName_("flags"),
+//<<<Joseph
 		// the function below uses Bytes
 		// FIXME
 //		_Public|_Static|_Const|_Im, _F(System_sendto), KType_Int, KType_System, KMethodName_("sendto"), 6, KType_Int, KFieldName_("socket"), KType_Bytes, KFieldName_("msg"), KType_Int, KFieldName_("flag"), KType_String, KFieldName_("dstIP"), KType_Int, KFieldName_("dstPort"), KType_Int, KFieldName_("family"),
