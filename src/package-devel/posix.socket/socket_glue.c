@@ -831,6 +831,7 @@ static KMETHOD System_write(KonohaContext *kctx, KonohaStack* sfp)
 			kString_text(msg),
 			kString_size(msg)
 	);
+	fprintf(stderr, "ret = %d\n", ret);
 	if(ret < 0) {
 		KMakeTrace(trace, sfp);
 		fprintf(stderr, "errno in write = %d, err = %s\n", errno, strerror(errno));//Joseph
@@ -892,6 +893,7 @@ static KMETHOD System_read(KonohaContext *kctx, KonohaStack* sfp)
 		write(stdout, buf, sizeof(buf));
 		write(acceptfd, buf, sizeof(buf));
 	}
+	fprintf(stderr, "ret = %d\n", ret);
 	if(ret < 0) {
 		KMakeTrace(trace, sfp);
 		fprintf(stderr, "errno in read = %d, err = %s\n", errno, strerror(errno));//Joseph
