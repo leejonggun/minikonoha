@@ -23,10 +23,11 @@ void test() {
 	int ret = System.connect(sockfd, dstIP, dstPort, dstFamily);
 
 	String msg = "Hello world!";
-//	while (true) {
+	System.p(msg);
 		//rebind System.sendto() function
-//			ret = System.sendto(sockfd, msg, 0, dstIP, dstPort, dstFamily);
-//			System.p("Sent a message\"Hello world!\" to server");
+			ret = System.sendto(sockfd, msg, 0, dstIP, dstPort, dstFamily);
+			System.p(ret);
+			System.p("Sent a message\"Hello world!\" to server");
 //	}
 //	int ret = System.sendto(sockfd, dstIP, dstPort, dstFamily);
 	System.close(sockfd);

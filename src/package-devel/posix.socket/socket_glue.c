@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define BUF 1024*8
+#define BUF 1024*4
 
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -164,43 +164,43 @@ void toSockaddr(struct sockaddr_in *addr, const char *ip, const int port, const 
 int Sys_Ex_Diagnosis(const char *dsthost) {
 	//struct sock_ctx -> hostname, IP, Gateway IP, routing table, iptables settings
 	int ret = 0;
-//	FILE *fp, *output;
-//	char buf[BUF], string[BUF] = "";
-//	char diagcmd[BUF] = "sudo konoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Experiment.ds ";
-//	char updatecmd[BUF] = "konoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
-//	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
-//	strcat(diagcmd, dsthost);
-//	fprintf(stderr, "\"%s\"\n", diagcmd);
-//
-//	if ((output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w")) == NULL) {
-//		fprintf(stderr, "can't open file \"output.txt\"\n", output);
-//		return -1;
-//	}
-//
-//	if ((fp = popen(diagcmd, "r")) == NULL) {
-//		fprintf(stderr, "can't exec \"%s\"\n", diagcmd);
-//		return -1;
-//	}
-//
-//	while(fgets(buf, BUF, fp) != NULL) {
-//		(void) fputs(buf, output);
-//		strcat(string, buf);
-//	}
-//	(void) pclose(fp);
-//	(void) fclose(output);
-//	fprintf(stdout, "%s\n", string);
-//	if (strstr(string, "false") > 0) {
-//		ret = SystemFault;
-//	}/* else {
-//		ret = ExternalFault;
-//	}*/
-//	fprintf(stderr, "before exec update\n");
-//	strcat(updatecmd, result_filename);
-//	fprintf(stdout,"%s\n",updatecmd);
-//	if (system(updatecmd) == -1) {
-//		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
-//	}
-//	fprintf(stderr, "Finished.\n");
+	FILE *fp, *output;
+	char buf[BUF], string[BUF] = "";
+	char diagcmd[BUF] = "sudo konoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Experiment.ds ";
+	char updatecmd[BUF] = "konoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
+	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
+	strcat(diagcmd, dsthost);
+	fprintf(stderr, "\"%s\"\n", diagcmd);
+
+	if ((output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w")) == NULL) {
+		fprintf(stderr, "can't open file \"output.txt\"\n", output);
+		return -1;
+	}
+
+	if ((fp = popen(diagcmd, "r")) == NULL) {
+		fprintf(stderr, "can't exec \"%s\"\n", diagcmd);
+		return -1;
+	}
+
+	while(fgets(buf, BUF, fp) != NULL) {
+		(void) fputs(buf, output);
+		strcat(string, buf);
+	}
+	(void) pclose(fp);
+	(void) fclose(output);
+	fprintf(stdout, "%s\n", string);
+	if (strstr(string, "false") > 0) {
+		ret = SystemFault;
+	}/* else {
+		ret = ExternalFault;
+	}*/
+	fprintf(stderr, "before exec update\n");
+	strcat(updatecmd, result_filename);
+	fprintf(stdout,"%s\n",updatecmd);
+	if (system(updatecmd) == -1) {
+		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
+	}
+	fprintf(stderr, "Finished.\n");
 	return ret;
 }
 
@@ -608,13 +608,14 @@ KMETHOD System_Setsockopt(KonohaContext *kctx, KonohaStack* sfp)
 //	KReturnUnboxValue(ret);
 //}
 
-////## int System.recv(int socket, String msgfrom, int flags);
+////## int System.recv(int socket, int flags);
 static KMETHOD System_recv(KonohaContext *kctx, KonohaStack* sfp)
 {
-	kString *msgfrom  = sfp[2].asString;
+	char* buf[BUF];
+	int revd_size = 0;
 	int ret = recv(WORD2INT(sfp[1].intValue),
-					  kString_text(msgfrom),
-					  kString_size(msgfrom),
+					  buf,
+					  BUF,
 					  (int)sfp[3].intValue);
 	if(ret < 0) {
 		KMakeTrace(trace, sfp);
@@ -945,7 +946,7 @@ static kbool_t socket_PackupNameSpace(KonohaContext *kctx, kNameSpace *ns, int o
 		_Public|_Const|_Im, _F(SockAddr_new), KType_SockAddr, KType_SockAddr, KMethodName_("new"), 0,
 //rebind sendto, recv
 		_Public|_Static|_Const|_Im, _F(System_sendto), KType_Int, KType_System, KMethodName_("sendto"), 6, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"), KType_Int, KFieldName_("flag"), KType_String, KFieldName_("dstIP"), KType_Int, KFieldName_("dstPort"), KType_Int, KFieldName_("family"),
-		_Public|_Static|_Const|_Im, _F(System_recv), KType_Int, KType_System, KMethodName_("recv"), 3, KType_Int, KFieldName_("fd"), KType_String, KFieldName_("buf"), KType_Int, KFieldName_("flags"),
+		_Public|_Static|_Const|_Im, _F(System_recv), KType_Int, KType_System, KMethodName_("recv"), 3, KType_Int, KFieldName_("fd"), KType_Int, KFieldName_("flags"),
 		// the function below uses Bytes
 		// FIXME
 //		_Public|_Static|_Const|_Im, _F(System_sendto), KType_Int, KType_System, KMethodName_("sendto"), 6, KType_Int, KFieldName_("socket"), KType_Bytes, KFieldName_("msg"), KType_Int, KFieldName_("flag"), KType_String, KFieldName_("dstIP"), KType_Int, KFieldName_("dstPort"), KType_Int, KFieldName_("family"),
