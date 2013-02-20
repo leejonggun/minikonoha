@@ -224,7 +224,7 @@ int diagnosis_detail(char *host, int Guessed_UserFault, int Guessed_SoftwareFaul
 	return user_fault | software_fault | ret;
 }
 
-static int diagnosisSocketFaultType(KonohaContext *kctx, char *Host, int err, int Guessed_UserFault)
+static int diagnosisSocketFaultType(KonohaContext *kctx, const char *Host, int err, int Guessed_UserFault)
 {
 	switch(err) {
 		case 0:      //Success
@@ -315,7 +315,6 @@ static int diagnosisSocketFaultType(KonohaContext *kctx, char *Host, int err, in
 		default:
 			break;
 	}
-	fprintf(stderr, "");
 	return Guessed_UserFault | SystemFault| SoftwareFault | ExternalFault;
 }
 
@@ -612,7 +611,6 @@ KMETHOD System_Setsockopt(KonohaContext *kctx, KonohaStack* sfp)
 static KMETHOD System_recv(KonohaContext *kctx, KonohaStack* sfp)
 {
 	char* buf[BUF];
-	int revd_size = 0;
 	int ret = recv(WORD2INT(sfp[1].intValue),
 					  buf,
 					  BUF,
@@ -844,7 +842,38 @@ static KMETHOD System_write(KonohaContext *kctx, KonohaStack* sfp)
 			LogErrno);
 		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
 //		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-//				LogText("@", "write"),
+//				LogText("@", "send"),
+//				LogUint("errno", errno),
+//				LogText("errstr", strerror(errno))
+//		);
+	}
+	KReturnUnboxValue(ret);
+}
+
+//## int System.send(int socket, String message, int flag);
+static KMETHOD System_send(KonohaContext *kctx, KonohaStack* sfp)
+{
+	kString* msg = sfp[2].asString;
+	// Broken Pipe Signal Mask
+	int ret = send(
+			WORD2INT(sfp[1].intValue),
+			kString_text(msg),
+			kString_size(msg),
+			WORD2INT(sfp[3].intValue)
+	);
+	if(ret < 0) {
+		KMakeTrace(trace, sfp);
+		fprintf(stderr, "errno in send = %d, err = %s\n", errno, strerror(errno));//Joseph
+		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
+		KTraceErrorPoint(trace, fault, "send",
+			LogUint("socket", WORD2INT(sfp[1].intValue)),
+			LogUint("errno", errno),
+			LogText("errstr", strerror(errno)),
+			LogUint("flag", WORD2INT(sfp[3].intValue)),
+			LogErrno);
+		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
+//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+//				LogText("@", "send"),
 //				LogUint("errno", errno),
 //				LogText("errstr", strerror(errno))
 //		);
@@ -1003,9 +1032,10 @@ static kbool_t socket_PackupNameSpace(KonohaContext *kctx, kNameSpace *ns, int o
 		_Public|_Const|_Im, _F(SockAddr_new), KType_SockAddr, KType_SockAddr, KMethodName_("new"), 0,
 //>>>Joseph
 		_Public|_Static|_Const|_Im, _F(System_write), KType_Int, KType_System, KMethodName_("write"), 2, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"),
+		_Public|_Static|_Const|_Im, _F(System_send), KType_Int, KType_System, KMethodName_("send"), 3, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"), KType_Int, KFieldName_("flag"),
 		_Public|_Static|_Const|_Im, _F(System_read), KType_Int, KType_System, KMethodName_("read"), 1, KType_Int, KFieldName_("socket"),
+		_Public|_Static|_Const|_Im, _F(System_recv), KType_Int, KType_System, KMethodName_("recv"), 2, KType_Int, KFieldName_("fd"), KType_Int, KFieldName_("flag"),
 		_Public|_Static|_Const|_Im, _F(System_sendto), KType_Int, KType_System, KMethodName_("sendto"), 6, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"), KType_Int, KFieldName_("flag"), KType_String, KFieldName_("dstIP"), KType_Int, KFieldName_("dstPort"), KType_Int, KFieldName_("family"),
-		_Public|_Static|_Const|_Im, _F(System_recv), KType_Int, KType_System, KMethodName_("recv"), 2, KType_Int, KFieldName_("fd"), KType_Int, KFieldName_("flags"),
 //<<<Joseph
 		// the function below uses Bytes
 		// FIXME
