@@ -1,0 +1,27 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean FirewallPolicyInput(Json ctx) {
+	boolean ret = true;
+
+	String ifconfig = $(sudo iptables -L | grep "INPUT");
+	if (ifconfig == "") {
+		return false;
+	}
+	if (ifconfig.search("DROP") > -1) {
+		ret = false;
+	} else if (ifconfig.search("REJECT") > -1) {
+		ret = false;
+	}
+
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	System.p(FirewallPolicyInput(ctx));
+}
+
+main();

@@ -1,0 +1,24 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean CheckDNS(Json ctx) {
+	boolean ret = true;
+	String resolv = ctx.getString("resolvpath");
+//	System.p(resolv);
+
+//get nameserver ip address
+	String DNS = $(cat "${resolv}" | grep "nameserver");
+//	System.p(DNS);
+	ret = (DNS.search("nameserver") > -1);
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	ctx.setString("resolvpath", "/etc/resolv.conf");
+	System.p(CheckDNS(ctx));
+}
+
+main();

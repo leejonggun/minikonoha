@@ -1,0 +1,41 @@
+// written by Joseph
+
+Import("Syntax.ShellStyle");
+Import("cstyle");
+Import("JavaScript.Regexp");
+Import("Java.String");
+Import("Type.Json");
+
+boolean CheckDriver(Json ctx) {
+	boolean ret = true;
+	String Media = "Ethernet";
+	String Kernel_Driver = "Kernel driver";
+	String Kernel_Modules = "Kernel modules";
+
+	String lspci_value = $(/usr/bin/lspci -k | grep -A 3 "${Media}");
+//	System.p(lspci_value);
+
+	Kernel_Driver = $(echo "${lspci_value}" | grep "${Kernel_Driver}");
+	String Driver_in_use = Kernel_Driver.split(":").get(1).trim();
+
+	Kernel_Modules = $(echo "${lspci_value}" | grep "${Kernel_Modules}");
+	String modules = Kernel_Modules.split(":").get(1).trim();//使用可能なモジュール。この中の一つがin useになければいけない
+	String[] available_modules = modules.split(",");
+
+	int i = 0;
+	while (i < available_modules.getLength()) {
+		if (Driver_in_use == available_modules[i].trim()) {
+			return true;
+		}
+		i = i + 1;
+	}
+
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	System.p(CheckDriver(ctx));
+}
+
+main();

@@ -1,0 +1,99 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean Evidences(Json ctx) {
+	boolean ret = true;
+	String host = ctx.getString("hostname");
+
+	String result = $(/usr/local/bin/konoha CheckNIC.ds);
+	System.p(result);
+
+	result = $(/usr/local/bin/konoha CheckDriver.ds);
+	System.p(result);
+
+	result = $(/usr/local/bin/konoha CheckMOD.ds);
+	System.p(result);
+
+	result = $(/usr/local/bin/konoha Connection.ds);
+	System.p(result);
+
+	result = $(/usr/local/bin/konoha CheckIPAddress.ds);
+	System.p(result);
+
+	result = $(/usr/local/bin/konoha Routing.ds "${host}");
+	System.p(result);
+
+//	result = $(/usr/local/bin/konoha RecognitionGW.ds);
+//	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallIPInput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallIPForward.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallIPOutput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallPolicyInput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallPolicyForward.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallPolicyOutput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallTCPInput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallTCPForward.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallTCPOutput.ds);
+	System.p(result);
+
+	result = $(/usr/local/bin/konoha CheckHostOrIP.ds "${host}");
+
+	if (result.search("IP Address") == -1) {
+		result = $(/usr/local/bin/konoha Nslookup.ds "${host}");
+		System.p(result);
+	}
+
+	result = $(sudo /usr/local/bin/konoha FirewallFTPInput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallFTPForward.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallFTPOutput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallFTPDataInput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallFTPDataForward.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha FirewallFTPDataOutput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/konoha CheckAnonConf.ds);
+	System.p(result);
+
+//	result = $(sudo /usr/local/bin/konoha CheckRootConf.ds);
+//	System.p(result);
+
+}
+
+void main() {
+	Json ctx = new Json();
+//	ctx.setString("hostname", SCRIPT_ARGV.get(1));
+//	ctx.setString("hostname", "www.google.com");
+	ctx.setString("hostname", "test");
+	Evidences(ctx);
+}
+
+main();

@@ -1,0 +1,18 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean CheckIPAddress(Json ctx) {
+	String ifconfig = $(/sbin/ifconfig | grep "inet");
+//	ifconfig = ifconfig.substring(0, ifconfig.search("lo"));
+	boolean ret = (ifconfig.search("192.168.59") > -1);
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	System.p(CheckIPAddress(ctx));
+}
+
+main();

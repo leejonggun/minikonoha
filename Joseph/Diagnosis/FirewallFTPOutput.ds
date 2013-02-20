@@ -1,0 +1,32 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean FirewallFTPOutput(Json ctx) {
+	boolean ret = true;
+
+//get iptables setting
+	String setting = $(sudo iptables -L -n);
+	if (setting == "") {
+		return false;
+	}
+	setting = setting.substring(setting.search("OUTPUT"), setting.getLength());
+	String ifconfig = $(echo "${setting}" | grep "DROP");
+	ifconfig = ifconfig.concat($(echo "${setting}" | grep "REJECT"));
+
+	if (ifconfig.search("21") > -1) {
+		ret = false;
+	}
+	if (ifconfig.search("21") > -1) {
+		ret = false;
+	}
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	System.p(FirewallFTPOutput(ctx));
+}
+
+main();

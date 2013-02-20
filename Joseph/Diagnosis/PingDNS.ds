@@ -1,0 +1,33 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean PingDNS(Json ctx) {
+	boolean ret = true;
+	String resolv = ctx.getString("resolv");
+	System.p(resolv);
+
+//get nameserver ip address
+	String DNS = $(cat "${resolv}" | grep "nameserver");
+	System.p(DNS);
+	if (DNS.search("nameserver") == -1) {
+		System.p("SystemFault:DNS is not found. Check /etc/resolv.conf.");
+		return false;
+	}
+	String nameserver = DNS.split(" ").get(1);
+
+//ping to the nameserver & check it works
+	ping "${nameserver}" -c 2 > /dev/null;
+	ret = ($? == 0);
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	ctx.setString("resolv", "/etc/resolv.conf");
+	System.p(PingDNS(ctx));
+}
+
+main();
+

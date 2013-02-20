@@ -1,0 +1,42 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+import("cstyle");
+
+boolean Routing(Json ctx) {
+	int i = 0, routable = 0;
+	String given_host = ctx.getString("hostname1");
+
+	//get IP Address from the hostname
+	String gethostip = $(/usr/bin/gethostip "${given_host}" -d).trim();//can connect directly.
+	if (gethostip == "") {
+		return false;
+		}
+	String[] getIP = gethostip.split(".");
+
+	getIP = getIP.slice(0,3);//Network part of IP Address
+
+	String Rtable = $(/bin/netstat -rn | grep "${getIP}");
+	while (i < getIP.getlength() - 1) {
+		routable = Rtable.search(getIP.get(i));
+		i = i + 1;
+	}
+	if (routable > 0) {
+		return true;
+	} else {
+		//If default gw is set, the packets can be routed.
+		if (Rtable.search("UG") > -1) {
+			return true;
+		}
+		return false;
+	}
+}
+
+void main() {
+	Json ctx = new Json();
+	ctx.setString("hostname1", SCRIPT_ARGV.get(1));
+	System.p(Routing(ctx));
+}
+
+main();

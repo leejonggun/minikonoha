@@ -1,0 +1,72 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean Ping(Json ctx) {
+	String host = ctx.getString("hostname");
+//	System.p(host);
+	String lookup = "";
+
+	ping "${host}" -c 2 > /dev/null;
+//	System.p($?);
+	if ($? == 0) {//Success
+//		System.p("Success:Network path to the server is connected");
+		return true;
+
+	} else if ($? == 1) {//ping is unreachable. "Destination Host Unreachable", "Destination Net Unreachable", "Operation not permitted", "Time to live exceeded", "Request timed out"
+		String res = $(ping "${host}" -c 2);
+
+		if (res.search("Destination Host Unreachable") != -1) {//Network involving the host is found, but the host is not found.
+			String LAN = $(minikonoha IPCheck.ds "${host}");
+			if (LAN.search("inside") > 0) {
+//				System.p("ExternalFault:${host} is in LAN and not found.");
+				return false;
+			}
+//			System.p("ExternalFault:${host} is out of LAN and not found.");
+			return false;
+		} else if (res.search("Destination Net Unreachable") != -1) {//Network is not found.
+//			System.p("SystemFault:Dafault gateway setting is wrong.");
+			String default_gateway = $(ip route show | grep "UG");
+//			System.p("SystemFault:" + default_gateway + ". This gateway is not working.");
+			return false;
+		} else if (res.search("Operation not permitted") != -1) {//firewall doesn't allow ping.
+			sudo iptables -L | grep "DROP";
+//			System.p("SystemFault:Your firewall doesn't allow ping.");
+			return false;
+		} else if (res.search("Time to live exceeded") != -1) {//TTL is set too little
+//			System.p("ExternalFault:It's too far to the server.");
+			return false;
+		} else if (res.search("100% packet loss") != -1) {//Host is found, but the host drops the packet.
+//		else if (res.search("Request timed out") != -1)
+			lookup = $(minikonoha Nslookup.ds "${host}");
+			if (lookup.search("false") != -1) {
+//				System.p("ExternalFault:Server doesn't respond. The server doesn't allow ping.");
+				return false;
+			}
+			String retry = $(minikonoha Retry.ds "${host}");
+//			System.p("SystemFault:Check your firewall setting");
+//			System.p("ExternalFault:Server doesn't respond. The server doesn't allow ping.");
+			return false;
+		}
+
+	} else if ($? == 2) {//Errors. can't ping. "Unknow host", "Network is unreachable"
+		lookup = $(minikonoha Nslookup.ds "${host}");
+		if (lookup.search("false") == -1) {//"Unknown host"
+//			System.p("SystemFault:Network is unreachable.");
+			return false;
+		}
+//		System.p("SystemFault:name resolution faild.");
+		return false;
+	}
+//	System.p("Ping.ds is not working");
+	return ($? == 0);
+}
+
+void main() {
+	Json ctx = new Json();
+	ctx.setString("hostname", SCRIPT_ARGV.get(1));
+	System.p(Ping(ctx));
+}
+
+main();

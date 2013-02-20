@@ -1,0 +1,40 @@
+.menu-i {
+	position: absolute;
+	left: 24px;
+	top : 0px;
+	width : 40px;
+	height: 40px;
+	background: #CCC;
+	opacity: 0.8;
+	border-radius: 4px;
+	text-align: center;
+}
+
+.menu-i:hover {
+	background: #EEE;
+}
+
+.menu-box {
+	position: absolute;
+	display: none;
+	left: 0px;
+	top: 40px;
+	width: 192px;
+	bottom: 0px;
+	background: #EEE;
+	padding: 4px;
+	overflow: auto;
+}
+
+.sidemenu-search-result {
+	overflow: scroll;
+}
+
+.sidemenu-result {
+	height: 0.8cm;
+}
+
+.sidemenu-result:hover {
+	color: #FFA0A0;
+}
+

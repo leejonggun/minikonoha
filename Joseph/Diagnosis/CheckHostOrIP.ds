@@ -1,0 +1,82 @@
+// written by Joseph
+
+Import("Syntax.ShellStyle");
+Import("Type.Json");
+Import("cstyle");
+Import("Java.String");
+Import("MiniKonoha.Map");
+
+boolean CheckGiven(String[] given_host, String hostsfile) {
+	int i = 0 , j = 0;
+	String tmpIP = given_host.get(0);
+	Map[String] check_map = new Map[String]();
+
+//Add user-add hostname from /etc/hosts
+	String hosts = "";
+	String raw_hosts = $(cat "${hostsfile}");
+	raw_hosts = raw_hosts.substring(0, raw_hosts.IndexOf(":"));
+
+	String[] host_list = raw_hosts.split("\n");
+	while (i < host_list.getlength()) {
+		if (host_list[i].startsWith("#") == false) {
+			hosts = hosts.concat(host_list[i]+"\n");
+		}
+		i = i + 1;
+	}
+	hosts = hosts.substring(0, hosts.lastIndexOf("\n") - 1);
+	host_list = hosts.split("\n");
+
+	i = 0;
+	while (i < host_list.getlength()) {
+		if (host_list[i].search("\t") > -1) {
+			host_list[i] = host_list[i].split("\t").get(1);
+		}
+		i = i + 1;
+	}
+
+	String[] check_list = ["www", "co", "ac", "ne", "com", "org", "net", "jp", "kr", "us"];//If the given string has one of these words, it is intended as hostname
+	check_list = check_list.concat(host_list);
+
+	//Mapping
+	i = 0;
+	while(i < check_list.getlength()) {
+		check_map.set(check_list[i], check_list[i]);
+		i = i + 1;
+	}
+
+	if (tmpIP.toint() == 0) {//if tmpIP is string String.toint() return 0.
+		while (j < given_host.getlength()) {
+			tmpIP = given_host.get(j);
+			if (tmpIP == check_map.get(tmpIP)) {
+				System.p("Hostname");
+				return true;
+			}
+			j = j + 1;
+		}
+//		System.p("The given host has wrong format.");
+		return false;
+	} else {
+		System.p("IP Address");
+		return false;
+	}
+}
+
+boolean CheckHostOrIP(Json ctx) {
+	boolean ret = true;
+	String host = ctx.getString("hostname");
+	String hosts = ctx.getString("hostsfile");
+
+//check the given is IP Address or Hostname.
+	String[] given = host.split(".");
+	ret = CheckGiven(given, hosts);
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	ctx.setString("hostname", SCRIPT_ARGV.get(1));
+	ctx.setString("hostsfile", "/etc/hosts");
+	CheckHostOrIP(ctx);
+}
+
+main();

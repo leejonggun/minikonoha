@@ -1,0 +1,23 @@
+// written by Joseph
+
+Import("Syntax.ShellStyle");
+Import("Type.Json");
+Import("cstyle");
+
+boolean CheckSetting(Json ctx) {
+	boolean ret = true;
+	String file = ctx.getString("SettingFile");
+	System.p(file);
+	String interfaces = $(cat "${file}");
+	System.p(interfaces);
+
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	ctx.setString("SettingFile", "/etc/network/interfaces");
+	System.p(CheckSetting(ctx));
+}
+
+main();

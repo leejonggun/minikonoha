@@ -1,0 +1,39 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+import("cstyle");
+
+boolean check_host_or_address(String[] given_host) {
+	int i = 0 , j = 0;
+	String str = $(ip route show | grep "default");
+	String[] gateway = str.substring(str.search("192"), str.search("dev")).split(".");
+	while (i < gateway.getlength() - 1) {
+		String tmpIP = given_host.get(i);
+		if (tmpIP != gateway.get(i)) {
+			System.p("outside of LAN.");
+			return false;
+		}
+		i = i + 1;
+	}
+	System.p("inside of LAN.");
+	return true;
+}
+
+boolean IPCheck(Json ctx) {
+	boolean ret = true;
+	String host = ctx.getString("hostname");
+
+//check the given is IP Address or Hostname.
+	String[] given = host.split(".");
+	ret = check_host_or_address(given);
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	ctx.setString("hostname", SCRIPT_ARGV.get(1));
+	IPCheck(ctx);
+}
+
+main();

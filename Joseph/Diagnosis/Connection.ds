@@ -1,0 +1,28 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean Connection(Json ctx) {
+	boolean ret = true;
+
+//check whether network cable is connected or not = network interface is working or not
+	String netstatus = $(/bin/netstat -rn);
+	if (netstatus == "") {
+		return false;
+	}
+	int iface = netstatus.search("eth");
+//	iface = iface + netstatus.search("wlan");
+	if (iface < 0) {
+//		System.p("SystemFault:Iface is not working.");
+		return false;
+	};
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	System.p(Connection(ctx));
+}
+
+main();

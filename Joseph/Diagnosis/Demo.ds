@@ -1,0 +1,62 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean Evidences(Json ctx) {
+	boolean ret = true;
+	String host = ctx.getString("hostname");
+
+	String result = $(/usr/local/bin/minikonoha CheckNIC.ds);
+	System.p(result);
+
+	String result = $(/usr/local/bin/minikonoha Connection.ds);
+	System.p(result);
+
+	String result = $(/usr/local/bin/minikonoha CheckIPAddress.ds);
+	System.p(result);
+
+//	result = $(/usr/local/bin/minikonoha RoutingDirectly.ds "${host}");
+//	System.p(result);
+
+	result = $(/usr/local/bin/minikonoha RoutingDefault.ds);
+	System.p(result);
+
+//	result = $(/usr/local/bin/minikonoha RecognitionGW.ds);
+//	System.p(result);
+//
+	result = $(sudo /usr/local/bin/minikonoha FirewallIPInput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/minikonoha FirewallIPForward.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/minikonoha FirewallIPOutput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/minikonoha FirewallTCPInput.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/minikonoha FirewallTCPForward.ds);
+	System.p(result);
+
+	result = $(sudo /usr/local/bin/minikonoha FirewallTCPOutput.ds);
+	System.p(result);
+
+	result = $(/usr/local/bin/minikonoha CheckHostOrIP.ds "${host}");
+
+	if (result.search("Hostname") > 0) {
+		result = $(/usr/local/bin/minikonoha Nslookup.ds "${host}");
+		System.p(result);
+	}
+}
+
+void main() {
+	Json ctx = new Json();
+//	ctx.setString("hostname", "www.google.com");
+//	ctx.setString("hostname", "192.168.122.179");
+	ctx.setString("hostname", SCRIPT_ARGV.get(1));
+	Evidences(ctx);
+}
+
+main();

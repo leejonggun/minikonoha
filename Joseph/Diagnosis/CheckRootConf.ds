@@ -1,0 +1,27 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean CheckRootConf(Json ctx) {
+	boolean ret = true;
+	String vsftpd = ctx.getString("confpath");
+
+	String config = $(cat "${vsftpd}" | grep "anon_root");
+//	System.p(config);
+	if (config.startsWith("#")) {
+		ret = false;
+	} else {
+		ret = (config.search("/") > -1);
+	}
+
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	ctx.setString("confpath", "/etc/vsftpd.conf");
+	System.p(CheckRootConf(ctx));
+}
+
+main();

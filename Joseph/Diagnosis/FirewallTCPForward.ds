@@ -1,0 +1,34 @@
+// written by Joseph
+
+import("Syntax.ShellStyle");
+import("Type.Json");
+
+boolean FirewallPortInput(Json ctx) {
+	boolean ret = true;
+
+//get iptables setting
+	String setting = $(sudo iptables -L);
+	if (setting == "") {
+		return false;
+	}
+	setting = setting.substring(setting.search("FORWARD"), setting.search("OUTPUT"));
+	String ifconfig = $(echo "${setting}" | grep "DROP");
+	ifconfig = ifconfig.concat($(echo "${setting}" | grep "REJECT"));
+
+	if (ifconfig.search("tcp") > -1) {
+//		System.p("SystemFault:FORWARD packet is dropped.");
+		ret = false;
+	} else if (ifconfig.search("tcp") > -1) {
+//		System.p("SystemFault:FORWARD packet is rejected.");
+		ret = false;
+	}
+
+	return ret;
+}
+
+void main() {
+	Json ctx = new Json();
+	System.p(FirewallPortInput(ctx));
+}
+
+main();
