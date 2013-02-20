@@ -890,8 +890,7 @@ static KMETHOD System_read(KonohaContext *kctx, KonohaStack* sfp)
 	int ret = 0;
 	int acceptfd = WORD2INT(sfp[1].intValue);
 	while ((ret = read(acceptfd, buf, sizeof(buf))) > 0) {
-		write(stdout, buf, sizeof(buf));
-		write(acceptfd, buf, sizeof(buf));
+		write(1, buf, sizeof(buf));
 	}
 	fprintf(stderr, "ret = %d\n", ret);
 	if(ret < 0) {
