@@ -608,32 +608,32 @@ KMETHOD System_Setsockopt(KonohaContext *kctx, KonohaStack* sfp)
 //}
 
 ////## int System.recv(int socket, int flags);
-static KMETHOD System_recv(KonohaContext *kctx, KonohaStack* sfp)
-{
-	char* buf[1];
-	int ret = 0;
-	while ((ret = recv(WORD2INT(sfp[1].intValue), buf, sizeof(buf), (int)sfp[3].intValue)) > 0) {
-		write(stdout, buf, sizeof(buf));
-	}
-	if(ret < 0) {
-		KMakeTrace(trace, sfp);
-		fprintf(stderr, "errno in recv = %d, err = %s\n", errno, strerror(errno));//Joseph
-		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
-		KTraceErrorPoint(trace, fault, "recv",
-			LogUint("socket", WORD2INT(sfp[1].intValue)),
-			LogText("buffer", kString_text(sfp[2].asString)),
-			LogUint("flags", WORD2INT(sfp[3].intValue)),
-			LogUint("errno", errno),
-			LogText("errstr", strerror(errno)),
-			LogErrno);
-		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
-//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-//				LogText("@", "recv"),
-//				LogText("perror", strerror(errno))
-//		);
-	}
-	KReturnUnboxValue(ret);
-}
+//static KMETHOD System_recv(KonohaContext *kctx, KonohaStack* sfp)
+//{
+//	char* buf[1];
+//	int ret = 0;
+//	while ((ret = recv(WORD2INT(sfp[1].intValue), buf, sizeof(buf), (int)sfp[3].intValue)) > 0) {
+//		write(stdout, buf, sizeof(buf));
+//	}
+//	if(ret < 0) {
+//		KMakeTrace(trace, sfp);
+//		fprintf(stderr, "errno in recv = %d, err = %s\n", errno, strerror(errno));//Joseph
+//		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
+//		KTraceErrorPoint(trace, fault, "recv",
+//			LogUint("socket", WORD2INT(sfp[1].intValue)),
+//			LogText("buffer", kString_text(sfp[2].asString)),
+//			LogUint("flags", WORD2INT(sfp[3].intValue)),
+//			LogUint("errno", errno),
+//			LogText("errstr", strerror(errno)),
+//			LogErrno);
+//		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
+////		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+////				LogText("@", "recv"),
+////				LogText("perror", strerror(errno))
+////		);
+//	}
+//	KReturnUnboxValue(ret);
+//}
 
 //## int System.recvfrom(int socket, byte[] buffer, int flags, Map remoteInfo);
 //static KMETHOD System_recvfrom(KonohaContext *kctx, KonohaStack* sfp)
@@ -779,47 +779,47 @@ static KMETHOD System_recv(KonohaContext *kctx, KonohaStack* sfp)
 //}
 
 //## int System.sendto(int socket, String message, int flags, String dstIP, int dstPort, int family);
-static KMETHOD System_sendto(KonohaContext *kctx, KonohaStack* sfp)
-{
-	kString* msg = sfp[2].asString;
-	struct sockaddr_in addr;
-	kString* s = sfp[4].asString;
-	toSockaddr(&addr, kString_text(s), WORD2INT(sfp[5].intValue), WORD2INT(sfp[6].intValue));
-	// Broken Pipe Signal Mask
-#if defined(__linux__)
-	__sighandler_t oldset = signal(SIGPIPE, SIG_IGN);
-	__sighandler_t ret_signal = SIG_ERR;
-#elif defined(__APPLE__) || defined(__NetBSD__)
-	sig_t oldset = signal(SIGPIPE, SIG_IGN);
-	sig_t ret_signal = SIG_ERR;
-#endif
-	int ret = sendto(
-			WORD2INT(sfp[1].intValue),
-			kString_text(msg),
-			kString_size(msg),
-			(int)sfp[3].intValue,
-			(struct sockaddr *)&addr,
-			sizeof(struct sockaddr)
-	);
-	if(ret < 0) {
-		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-				LogText("@", "sendto"),
-				LogUint("errno", errno),
-				LogText("errstr", strerror(errno))
-		);
-	}
-	if(oldset != SIG_ERR) {
-		ret_signal = signal(SIGPIPE, oldset);
-		if(ret_signal == SIG_ERR) {
-			OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-				LogText("@", "signal"),
-				LogUint("errno", errno),
-				LogText("errstr", strerror(errno))
-			);
-		}
-	}
-	KReturnUnboxValue(ret);
-}
+//static KMETHOD System_sendto(KonohaContext *kctx, KonohaStack* sfp)
+//{
+//	kString* msg = sfp[2].asString;
+//	struct sockaddr_in addr;
+//	kString* s = sfp[4].asString;
+//	toSockaddr(&addr, kString_text(s), WORD2INT(sfp[5].intValue), WORD2INT(sfp[6].intValue));
+//	// Broken Pipe Signal Mask
+//#if defined(__linux__)
+//	__sighandler_t oldset = signal(SIGPIPE, SIG_IGN);
+//	__sighandler_t ret_signal = SIG_ERR;
+//#elif defined(__APPLE__) || defined(__NetBSD__)
+//	sig_t oldset = signal(SIGPIPE, SIG_IGN);
+//	sig_t ret_signal = SIG_ERR;
+//#endif
+//	int ret = sendto(
+//			WORD2INT(sfp[1].intValue),
+//			kString_text(msg),
+//			kString_size(msg),
+//			(int)sfp[3].intValue,
+//			(struct sockaddr *)&addr,
+//			sizeof(struct sockaddr)
+//	);
+//	if(ret < 0) {
+//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+//				LogText("@", "sendto"),
+//				LogUint("errno", errno),
+//				LogText("errstr", strerror(errno))
+//		);
+//	}
+//	if(oldset != SIG_ERR) {
+//		ret_signal = signal(SIGPIPE, oldset);
+//		if(ret_signal == SIG_ERR) {
+//			OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+//				LogText("@", "signal"),
+//				LogUint("errno", errno),
+//				LogText("errstr", strerror(errno))
+//			);
+//		}
+//	}
+//	KReturnUnboxValue(ret);
+//}
 
 //## int System.write(int socket, String message);
 static KMETHOD System_write(KonohaContext *kctx, KonohaStack* sfp)
@@ -851,35 +851,36 @@ static KMETHOD System_write(KonohaContext *kctx, KonohaStack* sfp)
 }
 
 //## int System.send(int socket, String message, int flag);
-static KMETHOD System_send(KonohaContext *kctx, KonohaStack* sfp)
-{
-	kString* msg = sfp[2].asString;
-	// Broken Pipe Signal Mask
-	int ret = send(
-			WORD2INT(sfp[1].intValue),
-			kString_text(msg),
-			kString_size(msg),
-			WORD2INT(sfp[3].intValue)
-	);
-	if(ret < 0) {
-		KMakeTrace(trace, sfp);
-		fprintf(stderr, "errno in send = %d, err = %s\n", errno, strerror(errno));//Joseph
-		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
-		KTraceErrorPoint(trace, fault, "send",
-			LogUint("socket", WORD2INT(sfp[1].intValue)),
-			LogUint("errno", errno),
-			LogText("errstr", strerror(errno)),
-			LogUint("flag", WORD2INT(sfp[3].intValue)),
-			LogErrno);
-		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
-//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-//				LogText("@", "send"),
-//				LogUint("errno", errno),
-//				LogText("errstr", strerror(errno))
-//		);
-	}
-	KReturnUnboxValue(ret);
-}
+//static KMETHOD System_send(KonohaContext *kctx, KonohaStack* sfp)
+//{
+//	kString* msg = sfp[2].asString;
+//	// Broken Pipe Signal Mask
+//	int ret = send(
+//			WORD2INT(sfp[1].intValue),
+//			kString_text(msg),
+//			kString_size(msg),
+//			WORD2INT(sfp[3].intValue)
+//	);
+//	fprintf(stderr, "ret = %d\n", ret);
+//	if(ret < 0) {
+//		KMakeTrace(trace, sfp);
+//		fprintf(stderr, "errno in send = %d, err = %s\n", errno, strerror(errno));//Joseph
+//		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
+//		KTraceErrorPoint(trace, fault, "send",
+//			LogUint("socket", WORD2INT(sfp[1].intValue)),
+//			LogUint("errno", errno),
+//			LogText("errstr", strerror(errno)),
+//			LogUint("flag", WORD2INT(sfp[3].intValue)),
+//			LogErrno);
+//		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
+////		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+////				LogText("@", "send"),
+////				LogUint("errno", errno),
+////				LogText("errstr", strerror(errno))
+////		);
+//	}
+//	KReturnUnboxValue(ret);
+//}
 
 //## int System.read(int socket);
 static KMETHOD System_read(KonohaContext *kctx, KonohaStack* sfp)
@@ -887,8 +888,9 @@ static KMETHOD System_read(KonohaContext *kctx, KonohaStack* sfp)
 	char buf[1];
 	int ret = 0;
 	int acceptfd = WORD2INT(sfp[1].intValue);
-	while (ret = read(acceptfd, buf, sizeof(buf)) > 0) {
+	while ((ret = read(acceptfd, buf, sizeof(buf))) > 0) {
 		write(stdout, buf, sizeof(buf));
+		write(acceptfd, buf, sizeof(buf));
 	}
 	if(ret < 0) {
 		KMakeTrace(trace, sfp);
@@ -1032,10 +1034,10 @@ static kbool_t socket_PackupNameSpace(KonohaContext *kctx, kNameSpace *ns, int o
 		_Public|_Const|_Im, _F(SockAddr_new), KType_SockAddr, KType_SockAddr, KMethodName_("new"), 0,
 //>>>Joseph
 		_Public|_Static|_Const|_Im, _F(System_write), KType_Int, KType_System, KMethodName_("write"), 2, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"),
-		_Public|_Static|_Const|_Im, _F(System_send), KType_Int, KType_System, KMethodName_("send"), 3, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"), KType_Int, KFieldName_("flag"),
+//		_Public|_Static|_Const|_Im, _F(System_send), KType_Int, KType_System, KMethodName_("send"), 3, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"), KType_Int, KFieldName_("flag"),
 		_Public|_Static|_Const|_Im, _F(System_read), KType_Int, KType_System, KMethodName_("read"), 1, KType_Int, KFieldName_("socket"),
-		_Public|_Static|_Const|_Im, _F(System_recv), KType_Int, KType_System, KMethodName_("recv"), 2, KType_Int, KFieldName_("fd"), KType_Int, KFieldName_("flag"),
-		_Public|_Static|_Const|_Im, _F(System_sendto), KType_Int, KType_System, KMethodName_("sendto"), 6, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"), KType_Int, KFieldName_("flag"), KType_String, KFieldName_("dstIP"), KType_Int, KFieldName_("dstPort"), KType_Int, KFieldName_("family"),
+//		_Public|_Static|_Const|_Im, _F(System_recv), KType_Int, KType_System, KMethodName_("recv"), 2, KType_Int, KFieldName_("fd"), KType_Int, KFieldName_("flag"),
+//		_Public|_Static|_Const|_Im, _F(System_sendto), KType_Int, KType_System, KMethodName_("sendto"), 6, KType_Int, KFieldName_("socket"), KType_String, KFieldName_("msg"), KType_Int, KFieldName_("flag"), KType_String, KFieldName_("dstIP"), KType_Int, KFieldName_("dstPort"), KType_Int, KFieldName_("family"),
 //<<<Joseph
 		// the function below uses Bytes
 		// FIXME
