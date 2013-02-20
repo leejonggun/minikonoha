@@ -834,29 +834,48 @@ static KMETHOD System_write(KonohaContext *kctx, KonohaStack* sfp)
 			kString_size(msg)
 	);
 	if(ret < 0) {
-		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-				LogText("@", "write"),
-				LogUint("errno", errno),
-				LogText("errstr", strerror(errno))
-		);
+		KMakeTrace(trace, sfp);
+		fprintf(stderr, "errno in write = %d, err = %s\n", errno, strerror(errno));//Joseph
+		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
+		KTraceErrorPoint(trace, fault, "write",
+			LogUint("socket", WORD2INT(sfp[1].intValue)),
+			LogUint("errno", errno),
+			LogText("errstr", strerror(errno)),
+			LogErrno);
+		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
+//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+//				LogText("@", "write"),
+//				LogUint("errno", errno),
+//				LogText("errstr", strerror(errno))
+//		);
 	}
 	KReturnUnboxValue(ret);
 }
 
-//## int System.read(int socket, String message);
+//## int System.read(int socket);
 static KMETHOD System_read(KonohaContext *kctx, KonohaStack* sfp)
 {
-	char buf[1024*2];
+	char buf[1];
 	int ret = 0;
-	while (ret = read(WORD2INT(sfp[1].intValue), buf, sizeof(buf)) > 0) {
-		write(stdout, buf, ret);
+	int acceptfd = WORD2INT(sfp[1].intValue);
+	while (ret = read(acceptfd, buf, sizeof(buf)) > 0) {
+		write(stdout, buf, sizeof(buf));
 	}
 	if(ret < 0) {
-		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
-				LogText("@", "write"),
-				LogUint("errno", errno),
-				LogText("errstr", strerror(errno))
-		);
+		KMakeTrace(trace, sfp);
+		fprintf(stderr, "errno in read = %d, err = %s\n", errno, strerror(errno));//Joseph
+		int fault = diagnosisSocketFaultType(kctx, "NotGiven", errno, 0);
+		KTraceErrorPoint(trace, fault, "read",
+			LogUint("socket", WORD2INT(sfp[1].intValue)),
+			LogUint("errno", errno),
+			LogText("errstr", strerror(errno)),
+			LogErrno);
+		KLIB KRuntime_raise(kctx, KException_("IO"), fault, NULL, trace->baseStack);
+//		OLDTRACE_SWITCH_TO_KTrace(_SystemFault,
+//				LogText("@", "write"),
+//				LogUint("errno", errno),
+//				LogText("errstr", strerror(errno))
+//		);
 	}
 	KReturnUnboxValue(ret);
 }
