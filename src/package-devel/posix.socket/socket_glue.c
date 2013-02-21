@@ -166,13 +166,13 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	int ret = 0;
 	FILE *fp, *output;
 	char buf[BUF], string[BUF] = "";
-	char diagcmd[BUF] = "sudo konoha /home/joseph/workspace/dscript-library/Diagnosis/DCase/Experiment.ds ";
-	char updatecmd[BUF] = "konoha /home/joseph/workspace/TRY/DCaseDB/test/UpdateEvidence.k ";
-	const char *result_filename = "/home/joseph/workspace/TRY/DCaseDB/test/output.txt";
+	char diagcmd[BUF] = "sudo konoha /home/joseph/workspace/ForThesis/Diagnosis/Experiment.ds ";
+	char updatecmd[BUF] = "konoha /home/joseph/workspace/ForThesis/DCaseDB/test/UpdateEvidence.k ";
+	const char *result_filename = "/home/joseph/workspace/ForThesis/DCaseDB/test/output.txt";
 	strcat(diagcmd, dsthost);
 	fprintf(stderr, "\"%s\"\n", diagcmd);
 
-	if ((output = fopen("/home/joseph/workspace/TRY/DCaseDB/test/output.txt", "w")) == NULL) {
+	if ((output = fopen("/home/joseph/workspace/ForThesisY/DCaseDB/test/output.txt", "w")) == NULL) {
 		fprintf(stderr, "can't open file \"output.txt\"\n");
 		return -1;
 	}
