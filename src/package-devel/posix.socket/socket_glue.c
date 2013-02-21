@@ -194,12 +194,12 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	}/* else {
 		ret = ExternalFault;
 	}*/
-	fprintf(stderr, "before exec update\n");
-	strcat(updatecmd, result_filename);
-	fprintf(stdout,"%s\n",updatecmd);
-	if (system(updatecmd) == -1) {
-		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
-	}
+//	fprintf(stderr, "before exec update\n");
+//	strcat(updatecmd, result_filename);
+//	fprintf(stdout,"%s\n",updatecmd);
+//	if (system(updatecmd) == -1) {
+//		fprintf(stderr, "UpdateEvidence.k can't execute.\n");
+//	}
 	fprintf(stderr, "Finished.\n");
 	return ret;
 }
@@ -825,11 +825,17 @@ KMETHOD System_Setsockopt(KonohaContext *kctx, KonohaStack* sfp)
 static KMETHOD System_write(KonohaContext *kctx, KonohaStack* sfp)
 {
 	kString* msg = sfp[2].asString;
-	// Broken Pipe Signal Mask
+	int sock_fd = WORD2INT(sfp[1].intValue);
+
+	struct timeval tv;
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+	setsockopt(sock_fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv));
+
 	int ret = write(
-			WORD2INT(sfp[1].intValue),
-			kString_text(msg),
-			kString_size(msg)
+		sock_fd,
+		kString_text(msg),
+		kString_size(msg)
 	);
 	fprintf(stderr, "ret = %d\n", ret);
 	if(ret < 0) {
