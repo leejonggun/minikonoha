@@ -293,8 +293,8 @@ static int diagnosisSocketFaultType(KonohaContext *kctx, const char *Host, int e
 		case ECONNABORTED: /* 103 A connection has been aborted */	//for accept
 			return SoftwareFault;
 
-		case ENOBUFS:   /* 105 Insufficient buffer space available */	//for socket, accept
-			return SystemFault;
+		case ECONNRESET: /* 104 Connection reset by peer */
+			return diagnosis_detail(Host, 0, 0, 0, ExternalFault);
 
 		case EISCONN:   /* 106 The socket is already connected */	//for connect
 			return Guessed_UserFault;
@@ -861,9 +861,16 @@ static KMETHOD System_write(KonohaContext *kctx, KonohaStack* sfp)
 //static KMETHOD System_send(KonohaContext *kctx, KonohaStack* sfp)
 //{
 //	kString* msg = sfp[2].asString;
+//	int sock_fd = WORD2INT(sfp[1].intValue);
 //	// Broken Pipe Signal Mask
+//
+//	struct timeval tv;
+//	tv.tv_sec = 1;
+//	tv.tv_usec = 0;
+//	setsockopt(sock_fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv));
+//
 //	int ret = send(
-//			WORD2INT(sfp[1].intValue),
+//			sock_fd,
 //			kString_text(msg),
 //			kString_size(msg),
 //			WORD2INT(sfp[3].intValue)
