@@ -172,7 +172,7 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	strcat(diagcmd, dsthost);
 	fprintf(stderr, "\"%s\"\n", diagcmd);
 
-	if ((output = fopen("/home/joseph/workspace/ForThesisY/DCaseDB/test/output.txt", "w")) == NULL) {
+	if ((output = fopen("/home/joseph/workspace/ForThesis/DCaseDB/test/output.txt", "w")) == NULL) {
 		fprintf(stderr, "can't open file \"output.txt\"\n");
 		return -1;
 	}
