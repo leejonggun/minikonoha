@@ -298,6 +298,9 @@ static int diagnosisSocketFaultType(KonohaContext *kctx, const char *Host, int e
 
 		case EISCONN:   /* 106 The socket is already connected */	//for connect
 			return Guessed_UserFault;
+		case ENOTCONN:   /* 107 Transport endpoint is not connected */	//for read
+//			return diagnosis_detail(Host, 0, SoftwareFault, 0, 0);
+			return SoftwareFault;
 		case ETIMEDOUT: /* 110 Connection timed out while attempting connection. The server may be too busy*/	//for connect
 			return diagnosis_detail(Host, Guessed_UserFault, SoftwareFault, SystemFault, ExternalFault);
 //			return SoftwareFault|SystemFault|ExternalFault;
