@@ -30,10 +30,11 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <errno.h>
 #include <signal.h>
 #if defined(__NetBSD__)
-#include <time.h>  //for 'struct timeval'
+#include <sys/time.h>  //for 'struct timeval'
 #endif
 
 #if defined(__NetBSD__)
@@ -167,8 +168,8 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	FILE *fp, *output;
 	char buf[BUF], string[BUF] = "";
 	char diagcmd[BUF] = "sudo konoha /home/joseph/workspace/ForThesis/Diagnosis/Experiment.ds ";
-	char updatecmd[BUF] = "konoha /home/joseph/workspace/ForThesis/DCaseDB/test/UpdateEvidence.k ";
-	const char *result_filename = "/home/joseph/workspace/ForThesis/DCaseDB/test/output.txt";
+//	char updatecmd[BUF] = "konoha /home/joseph/workspace/ForThesis/DCaseDB/test/UpdateEvidence.k ";
+//	const char *result_filename = "/home/joseph/workspace/ForThesis/DCaseDB/test/output.txt";
 	strcat(diagcmd, dsthost);
 	fprintf(stderr, "\"%s\"\n", diagcmd);
 
@@ -204,7 +205,7 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	return ret;
 }
 
-int diagnosis_detail(char *host, int Guessed_UserFault, int Guessed_SoftwareFault, int Guessed_SystemFault, int Guessed_ExternalFault) {
+int diagnosis_detail(const char *host, int Guessed_UserFault, int Guessed_SoftwareFault, int Guessed_SystemFault, int Guessed_ExternalFault) {
 	int user_fault = Guessed_UserFault;
 	int software_fault = Guessed_SoftwareFault;
 	int ret = Guessed_SystemFault | Guessed_ExternalFault;
@@ -438,7 +439,17 @@ KMETHOD System_close(KonohaContext *kctx, KonohaStack* sfp)
 //## int System.connect(int socket, String dstIP, int dstPort, int family);
 KMETHOD System_connect(KonohaContext *kctx, KonohaStack* sfp)
 {
+	int sock = WORD2INT(sfp[1].intValue);
 	struct sockaddr_in addr;
+//	struct timeval tv = {5, 0};
+//	int val = 1;
+//	fd_set readfds;
+//	FD_ZERO(&readfds);
+//	FD_SET(sock, &readfds);
+	//Socket Nonblocking -> for timeout
+//	ioctl(sock, FIONBIO, &val);
+//	tv.tv_sec  = 5;
+//	tv.tv_usec = 0;
 
 	kString *dstIP = sfp[2].asString;
 	toSockaddr(&addr,
@@ -447,10 +458,14 @@ KMETHOD System_connect(KonohaContext *kctx, KonohaStack* sfp)
 				WORD2INT(sfp[4].intValue)
 	);
 
-	int ret = connect(WORD2INT(sfp[1].intValue),
+	int ret = connect(sock,
 			(struct sockaddr *)&addr,
 			sizeof(addr)
 	);
+//	fprintf(stderr, "after connect\n");
+//	ret = select(sock+1, &readfds, NULL, NULL, &tv);
+//	fprintf(stderr, "after select\n");
+
 	if(ret != 0) {
 		KMakeTrace(trace, sfp);
 		fprintf(stderr, "errno in connect = %d, err = %s\n", errno, strerror(errno));//Joseph
