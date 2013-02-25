@@ -30,7 +30,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
+//#include <sys/ioctl.h>
 #include <errno.h>
 #include <signal.h>
 #if defined(__NetBSD__)
@@ -173,10 +173,10 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	strcat(diagcmd, dsthost);
 	fprintf(stderr, "\"%s\"\n", diagcmd);
 
-	if ((output = fopen("/home/joseph/workspace/ForThesis/DCaseDB/test/output.txt", "w")) == NULL) {
-		fprintf(stderr, "can't open file \"output.txt\"\n");
-		return -1;
-	}
+//	if ((output = fopen("/home/joseph/workspace/ForThesis/DCaseDB/test/output.txt", "w")) == NULL) {
+//		fprintf(stderr, "can't open file \"output.txt\"\n");
+//		return -1;
+//	}
 
 	if ((fp = popen(diagcmd, "r")) == NULL) {
 		fprintf(stderr, "can't exec \"%s\"\n", diagcmd);
@@ -184,17 +184,17 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	}
 
 	while(fgets(buf, BUF, fp) != NULL) {
-		(void) fputs(buf, output);
+//		(void) fputs(buf, output);
 		strcat(string, buf);
 	}
 	(void) pclose(fp);
-	(void) fclose(output);
+//	(void) fclose(output);
 	fprintf(stdout, "%s\n", string);
 	if (strstr(string, "false") > 0) {
 		ret = SystemFault;
-	}/* else {
+	} else {
 		ret = ExternalFault;
-	}*/
+	}
 //	fprintf(stderr, "before exec update\n");
 //	strcat(updatecmd, result_filename);
 //	fprintf(stdout,"%s\n",updatecmd);
