@@ -173,10 +173,10 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	strcat(diagcmd, dsthost);
 	fprintf(stderr, "\"%s\"\n", diagcmd);
 
-//	if ((output = fopen("/home/joseph/workspace/ForThesis/DCaseDB/test/output.txt", "w")) == NULL) {
-//		fprintf(stderr, "can't open file \"output.txt\"\n");
-//		return -1;
-//	}
+	if ((output = fopen("/home/joseph/workspace/ForThesis/DCaseDB/test/output.txt", "w")) == NULL) {
+		fprintf(stderr, "can't open file \"output.txt\"\n");
+		return -1;
+	}
 
 	if ((fp = popen(diagcmd, "r")) == NULL) {
 		fprintf(stderr, "can't exec \"%s\"\n", diagcmd);
@@ -184,11 +184,11 @@ int Sys_Ex_Diagnosis(const char *dsthost) {
 	}
 
 	while(fgets(buf, BUF, fp) != NULL) {
-//		(void) fputs(buf, output);
+		(void) fputs(buf, output);
 		strcat(string, buf);
 	}
 	(void) pclose(fp);
-//	(void) fclose(output);
+	(void) fclose(output);
 	fprintf(stdout, "%s\n", string);
 	if (strstr(string, "false") > 0) {
 		ret = SystemFault;
@@ -212,7 +212,7 @@ int diagnosis_detail(const char *host, int Guessed_UserFault, int Guessed_Softwa
 
 	fprintf(stderr, "user_fault = %d, software_fault = %d, system_fault = %d, external_fault = %d\n", user_fault, software_fault, Guessed_SystemFault, Guessed_ExternalFault);
 	if ((!user_fault) && (software_fault)) {
-		software_fault = SoftwareFault;//How to check given by user or given by programmer statically.
+		software_fault = SoftwareFault;
 	} else {
 		software_fault = 0;
 	}
@@ -232,39 +232,28 @@ static int diagnosisSocketFaultType(KonohaContext *kctx, const char *Host, int e
 			return 0;
 		case EPERM:  /* 1. The user tried to connect to a broadcast address without having the socket broadcast flag enabled. Firewall rules forbid connection. */	//for connect, accept
 			return SoftwareFault|SystemFault;
-
 		case ENOENT: /* 2. No such file or directory */	//for bind
 			return Guessed_UserFault|SoftwareFault;
 		case EBADF:  /* 9. Bad file number */	//for bind, listen, connect, accept
 			return SoftwareFault;
-
 		case EINTR: /* 4. The system call was interrupted by a signal that was caught before a valid connection arrived */	//for connect, accept
 			return Guessed_UserFault|SoftwareFault;
-//			break;
 		case EAGAIN: /* 11. No more free local ports or insufficient entries in the routhing cache. */	//for, connect, accept
 			return SoftwareFault|SystemFault;
-
 		case ENOMEM: /* 12. Insufficient memory is available */	//for socket, bind, accept
 			return SystemFault;
-
 		case EACCES: /* 13. Permission denied and/or protocol is denied, the connection failed because of a local firewall rule*/	//for socket, bind, connect
-
 			return Guessed_UserFault|SystemFault;
-
 		case EFAULT: /* 14 The addr argument is not writalbe */	//for bind, connect, accept
 			return SoftwareFault/*|SystemFault TODO:Stack size depends on the architecture of a PC.スタックにアローケートされている場合,かつスタックオーバーフロー*/;
-
 		case ENOTDIR: /*20 Not a directory */	//for bind
 		case EINVAL: /* 22 Unknown protocol, addrlen is invalid, or the socket was not in the AF_UNIX family */	//for socket, bind
-			return diagnosis_detail(Host, Guessed_UserFault, SoftwareFault, 0, 0);
-//			return Guessed_UserFault|SoftwareFault;
-
+			return Guessed_UserFault|SoftwareFault;
 		case ENFILE:  /* 23. File table overflow */	//for socket, accept
 		case EMFILE: /* 24. Too many open files */	//for socket, accept
 			return SystemFault;
 		case EROFS:  /* 30 The socket inode would reside on a read-only file system */	//for bind
 			return SystemFault;
-
 		case ENAMETOOLONG:  /* 36 File name too long */	//for bind
 			return Guessed_UserFault|SoftwareFault;
 		case ELOOP: /* 40 Too many symbolic links encountered */	//for bind
@@ -273,12 +262,9 @@ static int diagnosisSocketFaultType(KonohaContext *kctx, const char *Host, int e
 		case ENOTSOCK: /* The file descriptor is not associated with a socket */	//for bind, listen, connect, accept
 			return SoftwareFault;
 		case EPROTONOSUPPORT: /* 88 Protocol not supported */	//for socket
-			/*insert a function for increasing the accuracy*/
-			/*サポートするプロトコルが何か(どうやって?)、指定されたプロトコルが何か比較する*/
 			return Guessed_UserFault|SoftwareFault;
 		case EPROTO:   /* 92 Protocol error */	//for accept
 			return SoftwareFault;
-
 		case ESOCKTNOSUPPORT: /* 94 Socket type not supported */
 		case EOPNOTSUPP:   /* 95 The referenced socket type is not SOCK_STREAM, Not supported the socket type*/	//for listen, accept
 		case EAFNOSUPPORT: /* 97 Address family not supported by protocol */	//for socket, connect
@@ -289,29 +275,20 @@ static int diagnosisSocketFaultType(KonohaContext *kctx, const char *Host, int e
 			return SoftwareFault;
 		case ENETUNREACH: /* 101 Network is unreachable */	//for connect
 			return diagnosis_detail(Host, 0, SoftwareFault, SystemFault, 0);
-			/*pingを飛ばすではなく、pingの挙動を理解してその返り値で判定する*/
-//			return SystemFault;
 		case ECONNABORTED: /* 103 A connection has been aborted */	//for accept
 			return SoftwareFault;
-
 		case ECONNRESET: /* 104 Connection reset by peer */
 			return diagnosis_detail(Host, 0, 0, 0, ExternalFault);
-
 		case EISCONN:   /* 106 The socket is already connected */	//for connect
 			return Guessed_UserFault;
 		case ENOTCONN:   /* 107 Transport endpoint is not connected */	//for read
-//			return diagnosis_detail(Host, 0, SoftwareFault, 0, 0);
 			return SoftwareFault;
 		case ETIMEDOUT: /* 110 Connection timed out while attempting connection. The server may be too busy*/	//for connect
 			return diagnosis_detail(Host, Guessed_UserFault, SoftwareFault, SystemFault, ExternalFault);
-//			return SoftwareFault|SystemFault|ExternalFault;
 		case ECONNREFUSED: /* 111 No-one listening on the remote address*/	//for connect
 			return diagnosis_detail(Host, Guessed_UserFault, SoftwareFault, 0, ExternalFault);
-			//return ExternalFault;
 		case EHOSTUNREACH: /* 113 No route to host */	//for connect, but man doesn't have this.
 			return diagnosis_detail(Host, Guessed_UserFault, SoftwareFault, 0, ExternalFault);
-			//return Guessed_UserFault|SoftwareFault|ExternalFault;
-
 		case EALREADY: /* 114 The socket is nonblocking and a previous connection attempt has not yet been completed.*/	//for connect
 			return Guessed_UserFault;
 		case EINPROGRESS: /* 115 The socket is nonblocking and the connection cannot be completed immediately. */	//for, connect
