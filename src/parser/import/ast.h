@@ -29,12 +29,12 @@ typedef enum {
 static int CallParseFunc(KonohaContext *kctx, kFunc *fo, kNode *node, ksymbol_t symbol, kArray *tokenList, int beginIdx, int operatorIdx, int endIdx)
 {
 	BEGIN_UnusedStack(lsfp);
-	KUnsafeFieldSet(lsfp[1].asNode, node);
-	lsfp[2].intValue = symbol;
-	KUnsafeFieldSet(lsfp[3].asArray, tokenList);
-	lsfp[4].intValue = beginIdx;
-	lsfp[5].intValue = operatorIdx;
-	lsfp[6].intValue = endIdx;
+	KStackSetObjectValue(lsfp[1].asNode, node);
+	KStackSetUnboxValue(lsfp[2].intValue, symbol);
+	KStackSetObjectValue(lsfp[3].asArray, tokenList);
+	KStackSetUnboxValue(lsfp[4].intValue, beginIdx);
+	KStackSetUnboxValue(lsfp[5].intValue, operatorIdx);
+	KStackSetUnboxValue(lsfp[6].intValue, endIdx);
 	CallSugarMethod(kctx, lsfp, fo, 6, (kObject *)KNULL(Int));
 	END_UnusedStack();
 	if(kNode_IsError(node)) return endIdx;
@@ -250,7 +250,7 @@ static int ParseNode(KonohaContext *kctx, kNode *node, kArray *tokenList, int be
 	return endIdx;
 }
 
-static kNode* ParseNewNode(KonohaContext *kctx, kNameSpace *ns, kArray *tokenList, int *beginIdx, int endIdx, ParseOption option, const char *requiredTokenText)
+static kNode *ParseNewNode(KonohaContext *kctx, kNameSpace *ns, kArray *tokenList, int *beginIdx, int endIdx, ParseOption option, const char *requiredTokenText)
 {
 	kNode *node = new_UntypedNode(kctx, OnGcStack, ns);
 	int nextIdx = ParseNode(kctx, node, tokenList, beginIdx[0], endIdx, option, requiredTokenText);
@@ -288,7 +288,7 @@ static kNode *AppendParsedNode(KonohaContext *kctx, kNode *node, kArray *tokenLi
 	return node;
 }
 
-static kNode* ParseSource(KonohaContext *kctx, kNameSpace *ns, const char *script, kfileline_t uline, int baseIndent)
+static kNode *ParseSource(KonohaContext *kctx, kNameSpace *ns, const char *script, kfileline_t uline, int baseIndent)
 {
 	kNode *node;
 	KTokenSeq tokens = {ns, KGetParserContext(kctx)->preparedTokenList, 0};

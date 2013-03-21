@@ -28,7 +28,6 @@ static kNode* kNode_CheckReturnType(KonohaContext *kctx, kNode *node)
 	if(node->attrTypeId != KType_void) {
 		kNode *stmt = new_TypedNode(kctx, kNode_ns(node), KNode_Return, KClass_void, 0);
 		kNode_AddParsedObject(kctx, stmt, KSymbol_ExprPattern, UPCAST(node));
-		DBG_ASSERT(stmt->stackbase == 0);
 		return stmt;
 	}
 	return node;
@@ -39,8 +38,8 @@ static kstatus_t kMethod_RunEval(KonohaContext *kctx, kMethod *mtd, ktypeattr_t 
 	BEGIN_UnusedStack(lsfp);
 	KRuntimeContextVar *runtime = kctx->stack;
 	if(runtime->evalty != KType_void) {
-		KUnsafeFieldSet(lsfp[1].asObject, runtime->stack[runtime->evalidx].asObject);
-		lsfp[1].intValue = runtime->stack[runtime->evalidx].intValue;
+		KStackSetObjectValue(lsfp[1].asObject, runtime->stack[runtime->evalidx].asObject);
+		KStackSetUnboxValue(lsfp[1].intValue,  runtime->stack[runtime->evalidx].intValue);
 	}
 	KStackSetMethodAll(lsfp, KLIB Knull(kctx, KClass_(rtype)), uline, mtd, 1);
 	kstatus_t result = K_CONTINUE;

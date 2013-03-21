@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <syslog.h>
+//#include <syslog.h>
 #include <stdlib.h>
 #include "konoha3/platform.h"
 
@@ -9,11 +9,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-extern void KonohaFactory_LoadPlatformModule(KonohaFactory *factory, const char *name, ModuleType option);
-extern void KonohaFactory_SetDefaultFactory(KonohaFactory *factory, void (*SetPlatformApi)(KonohaFactory *), int argc, char **argv);
-extern KonohaContext* KonohaFactory_CreateKonoha(KonohaFactory *factory);
-extern int Konoha_Destroy(KonohaContext *kctx);
 
 static KonohaContext *CreateContext()
 {

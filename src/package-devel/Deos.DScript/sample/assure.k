@@ -1,38 +1,20 @@
 Import("Deos.DScript");
-Import("JavaScript.Array");
 
-/*
- * reboot.ds
- */
-assure "サービスが正常に運用できる" {
-	assure "再起動が正常に動作する" {
-		System.p("sudo shutdown -r now");
+@DSE1 assure reboot must work {
+	System.p("sudo reboot -h now");
+}
+
+argue reboot must work {
+	strategy pre {
+		@DSE2 assure web server must be alive before the fact {
+			System.p("telnet @IP @PORT");
+		}
 	}
-	assure "Webサーバが正常に動作している" {
-		System.p("telnet " + @{IP} + " " + @{PORT});
-	}
-	argue "再起動が正常に動作する" {
-		strategy pre-post {
-			assure "事前にWebサーバが正常に動作している" {
-				System.p("=== pre  start ===");
-				@[Webサーバが正常に動作している];
-				System.p("=== pre  end   ===");
-			}
-			assure "事後にWebサーバが正常に動作している" {
-				System.p("=== post start ===");
-				@[Webサーバが正常に動作している];
-				System.p("=== post end   ===");
-			}
+	strategy post {
+		@DSE2 assure web server must be alive after the fact {
+			System.p("telnet @IP @PORT");
 		}
 	}
 }
 
-void test() {
-	String execcmd = "サービスが正常に運用できる";
-	if(SCRIPT_ARGV.getlength() == 2) {
-		execcmd = SCRIPT_ARGV[1];
-	}
-	eval("@[" + execcmd + "];");
-}
-
-test();
+System.p(@[reboot must work]);

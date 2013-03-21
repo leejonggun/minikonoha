@@ -251,7 +251,7 @@ static kbool_t JSBuilder_VisitNodeList(KonohaContext *kctx, KBuilder *builder, k
 		}
 
 		if(kNode_node(node) == KNode_Assign) {
-			JSBuilder_EmitAssignStmtPrefix(kctx, builder, node);	
+			JSBuilder_EmitAssignStmtPrefix(kctx, builder, node);
 		}
 
 		jsBuilder->isExprNode = kNode_isExpr(kctx, node);
@@ -280,7 +280,7 @@ static kbool_t JSBuilder_VisitBlockNode(KonohaContext *kctx, KBuilder *builder, 
 		JSBuilder_EmitNewLineWith(kctx, builder, isExprBlock ? "(function() {" : "{");
 		jsBuilder->indent++;
 	}
-	kbool_t ret = JSBuilder_VisitNodeList(kctx, builder, block, thunk);	
+	kbool_t ret = JSBuilder_VisitNodeList(kctx, builder, block, thunk);
 	if(!kNode_IsRootNode(block)) {
 		jsBuilder->indent--;
 		JSBuilder_EmitString(kctx, builder, isExprBlock ? "})()" : "}", "", "");
@@ -453,14 +453,14 @@ static void JSBuilder_EmitKonohaValue(KonohaContext *kctx, KBuilder *builder, KC
 static void JSBuilder_EmitConstValue(KonohaContext *kctx, KBuilder *builder, kObject *obj)
 {
 	KonohaStack sfp[1];
-	sfp[0].asObject = obj;
+	KStackSetObjectValue(sfp[0].asObject, obj);
 	JSBuilder_EmitKonohaValue(kctx, builder, kObject_class(obj), sfp);
 }
 
 static void JSBuilder_EmitUnboxConstValue(KonohaContext *kctx, KBuilder *builder, KClass *ct, unsigned long long unboxVal)
 {
 	KonohaStack sfp[1];
-	sfp[0].unboxValue = unboxVal;
+	KStackSetUnboxValue(sfp[0].unboxValue, unboxVal);
 	JSBuilder_EmitKonohaValue(kctx, builder, ct, sfp);
 }
 

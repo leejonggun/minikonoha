@@ -27,6 +27,9 @@
 
 #include "apr_strings.h"
 #include "http_log.h"
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_VERSION
 #ifndef K_USE_PTHREAD
 #define K_USE_PTHREAD 1
 #endif
@@ -35,7 +38,7 @@
 #include <konoha3/klib.h>
 #include <konoha3/platform.h>
 #include <konoha3/import/methoddecl.h>
-#include "../../package-devel/apache/apache_glue.h"
+#include "../../package-devel/Lib.Apache/apache_glue.h"
 
 #ifndef K_PREFIX
 #define K_PREFIX  "/usr/local"
@@ -295,8 +298,8 @@ static int konoha_handler(request_rec *r)
 	/* XXX: We assume Request Object may not be freed by GC */
 	kObject *req_obj = KLIB new_kObject(kctx, OnStack, cRequest, (uintptr_t)r);
 	BEGIN_UnusedStack(lsfp);
-	KUnsafeFieldSet(lsfp[K_CALLDELTA+0].asObject, K_NULL);
-	KUnsafeFieldSet(lsfp[K_CALLDELTA+1].asObject, req_obj);
+	KStackSetObjectValue(lsfp[K_CALLDELTA+0].asObject, K_NULL);
+	KStackSetObjectValue(lsfp[K_CALLDELTA+1].asObject, req_obj);
 	{
 		KonohaStack *sfp = lsfp + K_CALLDELTA;
 		KStackSetMethodAll(sfp, KLIB Knull(kctx, KClass_Int), 0/*UL*/, mtd, 1);

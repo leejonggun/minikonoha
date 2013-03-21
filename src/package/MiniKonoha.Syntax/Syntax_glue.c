@@ -272,7 +272,7 @@ static KMETHOD Node_TypeCheckNodeAt(KonohaContext *kctx, KonohaStack *sfp)
 //## void Node.SetType(int type);
 static KMETHOD Node_SetType(KonohaContext *kctx, KonohaStack *sfp)
 {
-	kNode_Type(kctx, sfp[0].asNode, sfp[1].intValue, KType_void);
+	kNode_Type(sfp[0].asNode, sfp[1].intValue, KType_void);
 	KReturnVoid();
 }
 
@@ -336,7 +336,7 @@ static KMETHOD Node_LookupNode(KonohaContext *kctx, KonohaStack *sfp)
 //## void Node.done();
 static KMETHOD Node_done(KonohaContext *kctx, KonohaStack *sfp)
 {
-	kNode_Type(kctx, sfp[0].asNode, KNode_Done, KType_void);
+	kNode_Type(sfp[0].asNode, KNode_Done, KType_void);
 	KReturnVoid();
 }
 
@@ -435,7 +435,8 @@ static KMETHOD Node_AppendParsedNode(KonohaContext *kctx, KonohaStack *sfp)
 	kArray *tokenList = sfp[1].asArray;
 	int beginIdx = sfp[2].intValue;
 	int endIdx = sfp[3].intValue;
-	const char *requiredTokenText = IS_NULL(sfp[4].asString) ? NULL : kString_text(sfp[4].asString);
+	kString *str = sfp[4].asString;
+	const char *requiredTokenText = IS_NULL(str) ? NULL : kString_text(str);
 	KReturn(SUGAR AppendParsedNode(kctx, node, tokenList, beginIdx, endIdx, NULL, ParseExpressionOption, requiredTokenText));
 }
 
@@ -731,7 +732,7 @@ static void Syntax_defineNodeMethod(KonohaContext *kctx, kNameSpace *ns, KTraceI
 //			}
 //			r = 1;
 //		}
-//		kNode_Type(kctx, stmt, KNode_Done, KType_void);
+//		kNode_Type(stmt, KNode_Done, KType_void);
 //	}
 //	KReturnUnboxValue(r);
 //}
